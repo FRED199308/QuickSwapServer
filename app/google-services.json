@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1008853764596",
+    "project_id": "quickswapserver",
+    "storage_bucket": "quickswapserver.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1008853764596:android:036812f5f004b01710d1a1",
+        "android_client_info": {
+          "package_name": "com.lunar.quickswapserver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1008853764596-md2rmd4jhol300mi3te5ji02tb3ij4jt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbguvBndxEfmwCQK-YpCaMcXgh0YCo05M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1008853764596-md2rmd4jhol300mi3te5ji02tb3ij4jt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

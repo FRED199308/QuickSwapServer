@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/tableRow"
+    android:background="@drawable/fredtextview">
+
+
+    <TextView
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="SN"
+        android:id="@+id/sn"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <TextView
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Response"
+        android:id="@+id/response"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+    <TextView
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Remarks"
+        android:id="@+id/remarks"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Phone Number"
+        android:id="@+id/phone"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <TextView
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Network"
+        android:id="@+id/network"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Status"
+        android:id="@+id/status"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Date"
+        android:id="@+id/date"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Action"
+        android:layout_marginRight="10dp"
+        android:id="@+id/assignbtn"
+
+        android:layout_marginStart="20dp"
+        android:textColor="#EE0038"/>
+
+</TableRow>

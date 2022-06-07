@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+    id  'com.google.firebase.crashlytics'
+}
+
+android {
+    compileSdkVersion 31
+    buildToolsVersion "31.0.0"
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
+    defaultConfig {
+        applicationId "com.lunar.quickswapserver"
+        minSdkVersion 21
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'com.android.support:multidex:1.0.3'
+    implementation group: 'xerces', name: 'xercesImpl', version: '2.12.0'
+    implementation 'com.google.firebase:firebase-messaging:23.0.2'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation platform('com.google.firebase:firebase-bom:29.1.0')
+    implementation 'com.android.volley:volley:1.2.1'
+    implementation "androidx.work:work-runtime:2.7.1"
+    implementation 'com.github.d-max:spots-dialog:0.4@aar'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'org.apache.commons:commons-io:1.3.2'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.2'
+}

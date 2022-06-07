@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SMSRecharge">
+
+
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <androidx.appcompat.widget.Toolbar
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:id="@+id/toolbar"
+            android:background="@color/teal_200"
+            android:weightSum="1"
+            android:layout_gravity="center"
+            android:contentInsetLeft="0dp"
+            android:contentInsetStart="0dp"
+            xmlns:android="http://schemas.android.com/apk/res/android">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_marginTop="10dp"
+                    android:text="QuickSwap)"
+                    android:textSize="15dp"
+                    android:textStyle="bold"
+                    android:id="@+id/textView"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:orientation="vertical"
+            android:gravity="center">
+
+
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+android:id="@+id/bal"
+                android:text="Current Balance"
+                android:textSize="18dp"
+
+                android:textColor="@color/purple_500" />
+
+
+
+
+
+        </LinearLayout>
+
+
+
+
+
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="Recharge Procedure"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/message"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginBottom="25dp"
+                android:padding="10dp"
+
+                android:textColor="#FAF10952"
+android:textSize="20dp"
+                android:inputType="textMultiLine"
+                android:gravity="left|top"
+
+                android:background="@drawable/fredtextfield" />
+
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+</ScrollView>

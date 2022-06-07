@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".OrdersView">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <androidx.appcompat.widget.Toolbar
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:id="@+id/toolbar"
+            android:background="@color/teal_200"
+            android:weightSum="1"
+            android:layout_gravity="center"
+            android:contentInsetLeft="0dp"
+            android:contentInsetStart="0dp"
+            xmlns:android="http://schemas.android.com/apk/res/android">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_marginTop="10dp"
+                    android:text="QuickSwap"
+                    android:textSize="15dp"
+                    android:textStyle="bold"
+                    android:id="@+id/textView"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+        <LinearLayout
+            android:layout_marginTop="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="20dp"
+            android:layout_gravity="center"
+
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="Search Number"
+
+                android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:layout_width="200dp"
+                    android:layout_height="40dp"
+                    android:id="@+id/searchfield"
+                    android:singleLine="true"
+
+                    android:textSize="25dp"
+                    android:layout_marginRight="10dp"
+                    android:background="@drawable/fredtextfield"/>
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:visibility="invisible"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="10dp"
+
+                    android:layout_centerHorizontal="true"/>
+
+            </LinearLayout>
+
+
+
+
+
+        </LinearLayout>
+
+
+
+
+        <HorizontalScrollView
+            android:layout_width="wrap_content"
+
+android:layout_gravity="center"
+            android:layout_height="wrap_content">
+
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                >
+
+                <TableRow
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    >
+
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="SN"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Phone Number"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+                    <TextView
+                        android:layout_width="150dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Amount"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+                    <TextView
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Date"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+                    <TextView
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Network"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+
+
+                </TableRow>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:id="@+id/orderRecycleview"
+                    android:layout_marginTop="15dp"/>
+
+            </TableLayout>
+
+
+
+        </HorizontalScrollView>
+
+
+
+
+
+
+
+    </LinearLayout>
+
+
+
+
+</ScrollView>

@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">QuickSwap Server</string>
+    <string name="redColor">#FF0000</string>
+    <string name="blackColor">#000000</string>
+    <string name="whatsapp_suffix">EditText</string>
+
+    <string name="packages">
+Daily Bundles;Weekly Bundles;Monthly Bundles;SMS;Minutes;All In One;Gifts;Airtime;No Expiry Calls;No Expiry Calls And SMS;No Expiry Bundles;
+    </string>
+
+
+    <!--End minutes packages -->
+
+    <!-- SMS packages -->
+
+    <string name="clientFcmToken">
+AAAApiDN6pQ:APA91bFeGukqabOFIDmcs2R8w97v8cSfSesbPdryNE-R-cW482bAyIZXaAXCF0n29lve2ijrogLHgsOzetEA8X5yM1X77oodi3u1woW5eqMolcZM_sZKQskr4FrgKY99jzHEBu9eCzyx
+    </string>
+    <string name="serverFcmKey">AAAA6uReyfQ:APA91bGA9HMKC0b-nT0mTitppGti_DZ5AOlWxEKTcTDlgkjFv-kFUIXVJMa53R1Yk7nNZWO0HvcL0mKLpyKJ-9VqnaImIMwX-4dQjdH-gmrCTVj5w82LeLySC3P7UjnQ7g2xG7feM5UP</string>
+
+
+
+    <string name="telkomNumber">
+0703757633
+    </string>
+
+
+    <string name="default_notification_channel_id">22</string>
+
+
+</resources>

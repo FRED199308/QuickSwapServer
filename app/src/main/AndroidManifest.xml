@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.lunar.quickswapserver">
+
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/service"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/service"
+        android:supportsRtl="true"
+        android:largeHeap="true"
+        android:theme="@style/Theme.QuickSwapServer">
+        <activity android:name=".Agents"></activity>
+
+        <receiver android:name=".SMSListener">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name=".BootUpReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".PlanRegistration"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity android:name=".MainActivity"></activity>
+        <activity
+            android:name=".SMSLogoView"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".WeeklyBundles"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".MonthlyBundles"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".Minutes"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".SMS"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".DailyBundles"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".Home"
+            android:clearTaskOnLaunch="true"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Airtime"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".NotificationMessages"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".Gifts"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".SMSRecharge"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".OrdersView"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+
+        <service
+            android:name=".Recharger"
+            android:parentActivityName=".Home"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" /> <!-- [START fcm_default_icon] -->
+        <!-- Set custom default icon. This is used when no icon is set for incoming notification messages. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/logo" />
+        <!--
+ Set color used with incoming notification messages. This is used when no color is set for the incoming
+             notification message.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/white" />
+    </application>
+
+</manifest>

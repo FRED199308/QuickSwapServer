@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".DailyBundles">
+
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:id="@+id/toolbar"
+        android:background="@color/teal_200"
+        android:weightSum="1"
+        android:layout_gravity="center"
+        android:contentInsetLeft="0dp"
+        android:contentInsetStart="0dp"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginTop="10dp"
+                android:text="Daily Bundles"
+                android:textSize="25dp"
+                android:textStyle="bold"
+                android:textColor="#EF1272"
+                android:id="@+id/textView"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <com.google.android.material.tabs.TabLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:id="@+id/dailybundletablayout">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+
+            android:text="Safaricom"/>
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+
+            android:text="Airtel"/>
+        <com.google.android.material.tabs.TabItem
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:text="Telkom"/>
+
+
+    </com.google.android.material.tabs.TabLayout>
+
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/dailybundlepageViewe"/>
+
+
+
+</LinearLayout>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/tableRow"
+    android:background="@drawable/fredtextview">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="SN"
+        android:id="@+id/sn"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <EditText
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="PhoneNumber"
+        android:id="@+id/phone"
+        android:editable="false"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+    <TextView
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Amount"
+        android:id="@+id/amount"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+
+
+    <TextView
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Date"
+        android:id="@+id/date"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Network"
+        android:id="@+id/network"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="MpesaCode"
+        android:id="@+id/mpesaCode"
+        android:layout_marginStart="10dp"
+        android:textColor="#EE0038"/>
+
+    <Button
+        android:layout_width="25dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginRight="10dp"
+        android:id="@+id/deletebtn"
+        android:background="@drawable/deletesmall"
+        android:layout_marginStart="20dp"
+        android:textColor="#EE0038"/>
+
+
+
+</TableRow>

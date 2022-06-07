@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+
+    tools:context=".MainActivity">
+    <ScrollView
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+android:text="Tied To Paybill: Mult Bills"
+
+        android:textStyle="italic"
+        android:textColor="@color/design_default_color_primary"/>
+
+
+
+            <Button
+                android:id="@+id/setup"
+                android:layout_gravity="right"
+                android:layout_marginTop="30dp"
+                android:layout_marginRight="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="prepare Enviroment"
+                />
+
+
+    <Button
+        android:id="@+id/balbtn"
+        android:layout_gravity="center"
+        android:layout_marginTop="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Check SMS Balance"
+      />
+    <TextView
+        android:id="@+id/smsBalance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="30dp"
+        android:textColor="@color/white"
+        android:text="SMS BALANCE:" />
+
+    <TextView
+        android:id="@+id/bal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textSize="15dp"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+android:layout_marginStart="30dp"
+android:shadowColor="@color/design_default_color_error"        android:gravity="center"
+        android:inputType="textPersonName"
+        android:text="Bal:"
+
+
+        />
+
+
+
+    <RadioGroup
+        android:layout_width="235dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        >
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:text="Sim 1"
+            android:background="@color/white"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:id="@+id/sim1"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="50dp"
+            android:background="@color/white"
+            android:id="@+id/sim2"
+            android:text="Sim 2"/>
+
+
+    </RadioGroup>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Airtime LoGs"
+        android:id="@+id/logs"
+        android:layout_gravity="center"
+        android:layout_marginStart="30dp"
+   />
+
+</LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp">
+
+            <LinearLayout
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginBottom="10dp"
+                    android:text="Paybill CMSN"
+                    android:textSize="20dp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/paybillcommsion"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:inputType="number"
+                    android:background="@drawable/fredtextfield"
+                    android:textColor="@color/white"
+                    android:textSize="22dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="20dp"
+                android:layout_gravity="center"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="Till CMSN"
+                    android:textSize="20dp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold" />
+                <EditText
+                    android:id="@+id/tillcommision"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+
+                    android:textSize="22dp"
+                    android:textColor="@color/white"
+                    android:inputType="number"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/fredtextfield" />
+
+            </LinearLayout>
+
+        </GridLayout>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save Commisions"
+            android:id="@+id/savebtn"
+            android:layout_gravity="center"
+            android:layout_marginStart="30dp"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="manage plans"
+            android:id="@+id/plans"
+            android:layout_gravity="center"
+            android:layout_marginStart="30dp"
+            />
+    </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

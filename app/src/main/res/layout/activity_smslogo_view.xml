@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SMSLogoView">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:orientation="vertical">
+
+
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:layout_gravity="center"
+            android:gravity="center"
+            >
+            <LinearLayout
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="15dp"
+                android:layout_gravity="center"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+
+                    android:text="Status"
+                    android:textStyle="bold" />
+                <Spinner
+                    android:id="@+id/statusFilter"
+                    android:layout_width="150dp"
+                    android:layout_height="50dp"
+
+
+                    />
+
+            </LinearLayout>
+
+<Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="clear logs"
+    android:id="@+id/clearbtn"/>
+
+
+
+
+            <RelativeLayout
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="15dp"
+                android:layout_marginTop="10dp"
+                android:layout_columnSpan="2"
+                android:layout_gravity="center"
+                android:gravity="center">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_alignParentLeft="true"
+                    android:id="@+id/refresh"
+
+                    android:text="Refresh"
+                    android:textStyle="bold" />
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="150dp"
+                    android:layout_height="50dp"
+
+                    android:layout_alignParentRight="true"
+                    />
+
+            </RelativeLayout>
+
+        </GridLayout>
+
+
+
+        <HorizontalScrollView
+            android:layout_width="wrap_content"
+
+            android:layout_gravity="center"
+            android:layout_height="wrap_content">
+
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TableRow
+                    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tableRow"
+                    android:background="@drawable/fredtextview">
+
+
+                    <TextView
+                        android:layout_width="30dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="SN"
+                        android:id="@+id/sn"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+                    <TextView
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Response"
+                        android:id="@+id/response"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+                    <TextView
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Remarks"
+                        android:id="@+id/remarks"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Phone Number"
+                        android:id="@+id/phone"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Network"
+                        android:id="@+id/network"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+
+
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Status"
+                        android:id="@+id/status"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Date"
+                        android:id="@+id/date"
+                        android:layout_marginStart="10dp"
+                        android:textColor="#EE0038"/>
+
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="Action"
+                        android:layout_marginRight="10dp"
+                        android:id="@+id/assignbtn"
+
+                        android:layout_marginStart="20dp"
+                        android:textColor="#EE0038"/>
+
+                </TableRow>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:id="@+id/smsLogRecycleview"
+                    android:layout_marginTop="15dp"/>
+
+            </TableLayout>
+
+
+
+        </HorizontalScrollView>
+
+
+
+    </LinearLayout>
+
+
+</ScrollView>
