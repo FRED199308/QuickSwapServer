@@ -26,9 +26,14 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -36,12 +41,15 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 
+import org.apache.xerces.impl.dv.util.Base64;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,13 +65,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     int paymentValue = 0;
     String msg_from="";
     String requestMode="";
-    DBHelper db;
+
     String plan="";
     String registrationId="";
     SQLiteDatabase sq;
     InitialConfigs configs;
     private RequestQueue mRequestQue;
     LipaRequest lipaRequest;
+    SimpleDateFormat format=new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
     private String URL = "https://fcm.googleapis.com/fcm/send";
 String orderNumber="";
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -79,10 +88,9 @@ String orderNumber="";
         }
 
         super.onMessageReceived(remoteMessage);
-        if(db==null)
-        {
-            db = new DBHelper(this);
-        }
+
+
+
      if(configs==null)
      {
          configs = new InitialConfigs(this);
@@ -129,6 +137,23 @@ String orderNumber="";
             }
 
         }
+
+            if(requestType.equalsIgnoreCase("Status")&& extraData.get("plan")!=null)
+            {
+
+                sendNotification(extraData.get("plan"),"Status Request",R.string.blackColor);
+
+                if(configs.serverStatus.equalsIgnoreCase("true"))
+                {
+                    statusProcessor(extraData.get("plan"));
+
+                }
+                else{
+                    Toast.makeText(this,"Received A Report But  Server  Status is Off Service Is Off",Toast.LENGTH_LONG).show();
+                }
+
+            }
+
         if (requestType.equalsIgnoreCase("AgentRegistration")) {
 
 
@@ -202,8 +227,8 @@ String orderNumber="";
         if (configs.getServerStatus().equalsIgnoreCase("true")) {
             if (planrequeted != null && (appPredefinedRequestformatVerifier(planrequeted) || appPredefinedUnknownCostRequestformatVerifier(planrequeted))) {
 
-
-                sendNotification(planrequeted, "Plan Request", R.string.blackColor);
+                DBHelper db = new DBHelper(this);
+                sendNotification(planrequeted, "Request Received", R.string.blackColor);
                 String messageContent = planrequeted;
                 System.err.println("App Format Accepted");
                 orderNumber = IdGenerator.keyGen();
@@ -248,10 +273,10 @@ String orderNumber="";
 
                 if (savedPlanCost.isEmpty() || savedPlanCost.equalsIgnoreCase("0")) {
                     if (db.getAllplans().size() > 0) {
-                        db.registerPlanRequest(plan, requestType, Integer.parseInt("0"), network, rechargingPhone, String.valueOf(new Date()), "Unknown", "Online", orderNumber, payingPhone);
+                        db.registerPlanRequest(plan,requestType,paymentValue,Globals.networkProviderDeterminer(rechargingPhone),payingPhone,String.valueOf(new Date()),"Not received","Online",rechargingPhone,orderNumber,registrationId);
                         String messageToReply = "This Plan Is Currently Not Available,Ensure You have Refreshed The Packages in The Application, Or Please Contact The Admin For Assistance via :0703757633";
 
-                        sendConfirmationNotifcation(this, messageToReply, registrationId, rechargingPhone, null);
+                        sendConfirmationNotifcation(this, messageToReply, registrationId, "Not Found", null);
                     }
                 } else {
 
@@ -262,13 +287,13 @@ String orderNumber="";
                             int cost = Integer.parseInt(savedPlanCost);
                             System.err.println("Cost Found" + cost);
                             paymentValue = cost;
-                            db.registerPlanRequest(plan, requestType, cost, network, rechargingPhone, String.valueOf(new Date()), "Unknown", "Online", orderNumber, payingPhone);
+                            db.registerPlanRequest(plan,requestType,paymentValue,Globals.networkProviderDeterminer(rechargingPhone),payingPhone,String.valueOf(new Date()),"Not received","Online",rechargingPhone,orderNumber,registrationId);
                             orderRequestProcessor(this);
                         } else {
                             if (configs.getServerStatus().equalsIgnoreCase("true")) {
                                 String messageToReply = "Shop Closed Please Try Again Later,Opening Hours,Monday To Friday 8:00AM to 9:00PM Saturday And Sunday 9:00AM To 8:00PM.\n You Can Still Request Airtime Any Time And Buy The Package You Wish From You End";
 
-                                sendConfirmationNotifcation(this, messageToReply, registrationId, "Plan Request Confirmation", null);
+                                sendConfirmationNotifcation(this, messageToReply, registrationId, "Shop Closed", null);
 
                             }
 
@@ -285,7 +310,7 @@ String orderNumber="";
                             int commission = (int) ((Double.valueOf(percentageDiscount) / 100) * airtime);
 
                             paymentValue = airtime - commission;
-                            db.registerPlanRequest(plan, requestType, paymentValue, network, rechargingPhone, String.valueOf(new Date()), "Unknown", "Online", orderNumber, payingPhone);
+                            db.registerPlanRequest(plan,requestType,paymentValue,Globals.networkProviderDeterminer(rechargingPhone),payingPhone,String.valueOf(new Date()),"Not received","Online",rechargingPhone,orderNumber,registrationId);
                             orderRequestProcessor(this); //process
                             System.err.println("Retrieved Details:" + db.getRequestDetails(orderNumber));
                         } else {
@@ -296,13 +321,13 @@ String orderNumber="";
                                 int airtime = Integer.parseInt(costfromClient);
                                 int commission = (int) ((Double.valueOf(percentageDiscount) / 100) * airtime);
                                 paymentValue = airtime - commission;
-                                db.registerPlanRequest(plan, requestType, paymentValue, network, rechargingPhone, String.valueOf(new Date()), "Unknown", "Online", orderNumber, payingPhone);
+                                db.registerPlanRequest(plan,requestType,paymentValue,Globals.networkProviderDeterminer(rechargingPhone),payingPhone,String.valueOf(new Date()),"Not received","Online",rechargingPhone,orderNumber,registrationId);
                                 orderRequestProcessor(this);
                             } else {
                                 if (configs.getServerStatus().equalsIgnoreCase("true")) {
                                     String messageToReply = "Shop Closed Please Try Again Later,Opening Hours,Monday To Friday 8:00AM to 9:00PM Saturday And Sunday 9:00AM To 8:00PM.\n You Can Still Request Airtime Any Time And Buy The Package You Wish From You End";
 
-                                    sendConfirmationNotifcation(this, messageToReply, registrationId, "Plan Request Confirmation", null);
+                                    sendConfirmationNotifcation(this, messageToReply, registrationId, "Shop Closed", null);
 
                                 }
 
@@ -321,7 +346,7 @@ String orderNumber="";
 
                 if (planrequeted.equalsIgnoreCase("All Plans")) {
 
-
+                    DBHelper db = new DBHelper(this);
                     FirebaseMessaging.getInstance().getToken()
                             .addOnCompleteListener(new OnCompleteListener<String>() {
                                 @Override
@@ -349,6 +374,59 @@ String orderNumber="";
 
     }
 
+
+    }
+
+
+    private void statusProcessor(String messageContent)
+    {
+        DBHelper db = new DBHelper(this);
+        String orderNumber="";
+        if(messageContent.split("#").length>=2)
+        {
+            orderNumber=messageContent.split("#")[1];
+        }
+        Map packageDataMap=db.getFullOrderDetails(orderNumber);
+        System.err.println("Order Details"+packageDataMap);
+        if(packageDataMap.isEmpty())
+        {
+            packageDataMap=db.getRequestDetails(orderNumber);
+            System.err.println("plan request Details"+packageDataMap);
+            System.err.println("All plan request Details"+db.getAllRequestDetails());
+
+            if(packageDataMap.isEmpty())
+            {
+                sendConfirmationNotifcation(this,"Order Not Found Please Check The Order Number",registrationId,"status",null);
+
+            }
+            else{
+
+                String phone=packageDataMap.get("rechargePhone").toString();
+                phone=phone.substring(0,5)+"xxxxx";
+                String replyMessageToClient="Order; "+orderNumber+".\n\n"+"Item requested: "+packageDataMap.get("planName")+"\nFor "+phone+"\nSTATUS:"+packageDataMap.get("status")+" \nQuickSwap KE. ";
+
+                sendConfirmationNotifcation(this,replyMessageToClient,registrationId,"status",null);
+
+
+
+            }
+
+
+        }
+        else{
+            String phone=packageDataMap.get("rechargePhone").toString();
+            phone=phone.substring(0,5)+"xxxxx";
+            String replyMessageToClient="Order "+orderNumber+".\n"+"\nItem requested: "+packageDataMap.get("planName")+"\nFor "+phone+"\nSTATUS:"+packageDataMap.get("status")+" \nQuickSwap KE. ";
+
+            sendConfirmationNotifcation(this,replyMessageToClient,registrationId,"status",null);
+
+
+
+
+
+
+
+        }
 
     }
     private void sendNotification(String messageBody,String title,int color) {
@@ -406,6 +484,7 @@ String orderNumber="";
     }
 public String registerAgent(String details)
 {
+    DBHelper db = new DBHelper(this);
     details=details.replaceFirst("Contact Number:","");
     SimpleDateFormat format=new SimpleDateFormat("yyyy-M-dd hh:mm:ss");
     String fullname=details.split("#")[1]+" "+details.split("#")[2];
@@ -420,24 +499,27 @@ public String registerAgent(String details)
     {
 
 
+        Map simInfo = simsSubscriptionId(context);
 
         int subscriptionId;
-        String messageToReply ="Please Enter Your Mpesa Pin Once Prompted By Safaricom To Complete Purchase Of:"+plan+" for :"+rechargingPhone+" Thank you";
+        String messageToReply ="Order Number: "+orderNumber+"\nEnter Your Mpesa Pin To Complete Purchase Of :"+plan+" for :"+rechargingPhone+"\n\nTo check your order status, Reply with "+"STATUS#"+orderNumber;
+        subscriptionId = Integer.parseInt(simInfo.get("sim1SubscriptionId").toString());
 
-        sendConfirmationNotifcation(this, messageToReply, registrationId, "Plan Request Confirmation",null);
-        // System.err.println("message from :"+msg_from.replace("+254","0"));
+        sendConfirmationNotifcation(context,messageToReply,registrationId,"Plan Request Confirmation",plan);
+      //  sendSms(context, messageToReply,  rechargingPhone,true);
+
         if(payingPhone.equalsIgnoreCase(rechargingPhone.replace("+254","0")))
         {
 
 
         }
         else{
-            //   sendMultSMS(context, messageToReply, subscriptionId, payingPhone,true);
+
         }
         sendSms(context, messageToReply,  payingPhone,true);
-        Token token = new Token();
-        token.execute();
-
+//        Token token = new Token();
+//        token.execute();
+        authTok(this);
 
     }
 
@@ -512,6 +594,8 @@ sendConfirmationNotifcation(context,message,deviceNumber,REQUESTTYPE,"");
             }
         };
         mRequestQue.add(request);
+        com.android.volley.Request rr;
+
     }
     catch (JSONException e)
 
@@ -527,13 +611,12 @@ return true;
         JSONObject json = new JSONObject();
         try {
             json.put("to",deviceNumber);
-            JSONObject notificationObj = new JSONObject();
-            notificationObj.put("title","Request Received");
-            notificationObj.put("body",message);
+
 
             JSONObject extraData = new JSONObject();
             extraData.put("message",message);
             extraData.put("plans","sent");
+            extraData.put("title",requestType);
             extraData.put("requestType",requestType);
             JSONObject extraDataPriority = new JSONObject();
             extraDataPriority.put("priority","high");
@@ -586,103 +669,48 @@ return true;
 
     }
 
-    private class Token extends AsyncTask<String, Void, String>
-    {
-
-        @Override
-        protected String doInBackground(String...voids) {
-
-            try {
-                AuthToken authToken=new AuthToken();
-                return authToken.getAccessToken().getToken();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "Error :"+e.toString();
-            }
-
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-
-        }
-
-        @Override
-        protected void onPostExecute(String token) {
-
-            if(token.startsWith("Error"))
-            {
-
-
-
-            }
-            else{
-                MpesaRequest request=new MpesaRequest();
-                request.execute(token,plan);
-            }
-
-
-
-        }
-
-    }
-    private class MpesaRequest extends AsyncTask<String, Void, LipaNaMpesaRequest> {
-
-        @Override
-        protected LipaNaMpesaRequest doInBackground(String...voids) {
-
-            if(payingPhone!=null&&!payingPhone.isEmpty())
-            {
-                return  lipaRequest.makeRequest(voids[0],payingPhone,paymentValue,rechargingPhone,voids[1],registrationId,getResources().getString(R.string.clientFcmToken),getResources().getString(R.string.serverFcmKey),configs.getServerId(),orderNumber);
-
-            }
-            else{
-                return  null;
-            }
-
-
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-
-
-        }
-
-        @Override
-        protected void onPostExecute(LipaNaMpesaRequest lipa) {
-
-
-            //System.out.println("Request Response :"+lipa.getResponseDescription());
-
-
-        }
-
-    }
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void paymentProcessor(String orderDetails, Context context)
     {
-
+        DBHelper db = new DBHelper(this);
+        System.err.println("haha1");
         String content[]=orderDetails.split("#");
+        String plantype="";
+        String costPrice="";
 
-        String paidorderNumber="";
+        String orderNumber="",name="";
         if(content.length>4)
         {
-            paidorderNumber=content[4];
+            orderNumber=content[4].replaceAll(" ","");
         }
-        payingPhone =db.getRequestDetails(paidorderNumber).get("payingPhone");
+        if(content.length>5)
+        {
+            name=content[5];
+        }
+
 
 
         String receiver=content[2].replaceAll(" ",""),packageName=content[0].replaceFirst("TILL ", "");
         int amount= Double.valueOf(content[1]).intValue(), value;
         String mpesaCode=content[3];
+
+        if(receiver.substring(0,3).equalsIgnoreCase("254"))
+            receiver=receiver.replaceFirst("254","0");
+        Map <String,String>  packageDetailsMap=db.getRequestDetails(orderNumber);
+        payingPhone=packageDetailsMap.get("payingPhone");
+
         if (orderDetails.startsWith("TILL")) {
+            if(content.length>4)
+            {
+                orderNumber=content[4];
+            }
+            if(content.length>5)
+            {
+                name=content[5];
+            }
+
             orderDetails = orderDetails.replaceFirst("TILL ", "");
 
 
@@ -690,6 +718,8 @@ return true;
                 receiver = "0" + receiver.substring(4);
             }
             plan=packageName;
+            String network=Globals.networkProviderDeterminer(receiver);
+            System.err.println(db.getPlanCostDetails(plan,Globals.networkProviderDeterminer(receiver)));
 
             String commm=db.getPlanCostDetails(plan,Globals.networkProviderDeterminer(receiver)).get("cost");
             String agentDetails=db.getAgentDetails(payingPhone).get("agentName");
@@ -699,40 +729,123 @@ return true;
 
 
             }
-            System.err.println("Receiver:"+receiver+" plan:"+plan+" Amount:"+amount+" mpesa code:"+mpesaCode);
+            costPrice=db.getPlanCostDetails(plan,network).get("cost");
+            plantype=db.getPlanCostDetails(plan,network).get("planType");
+            Map   packageDataMap=db.getRequestDetails(orderNumber);
+            System.err.println("Receiver:"+receiver+" plan:"+plan+" Amount:"+amount+" mpesa code:"+mpesaCode+"Commission:"+commm+" Network:"+Globals.networkProviderDeterminer(receiver));
             value = (amount * 100) / (100- Integer.valueOf(commm));
-            SimpleDateFormat format=new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
-            db.registerOrder(packageName,"",value,Globals.networkProviderDeterminer(receiver),receiver, String.valueOf(format.format(new Date())),"Un known","SMS",mpesaCode,paidorderNumber);
+
+            db.registerOrder(packageName,"",value,Globals.networkProviderDeterminer(receiver),packageDataMap.get("payingPhone").toString(), String.valueOf(format.format(new Date())),orderNumber,"Online",mpesaCode,name,orderNumber,packageDataMap.get("rechargePhone").toString(),amount);
             System.err.println("Airtime Value:"+value+" Commision Used:"+commm);
             if(packageName.startsWith("A"))
             {
+                if(Globals.networkProviderDeterminer(receiver).equalsIgnoreCase("Telkom")){
 
-             if(Globals.networkProviderDeterminer(receiver).equalsIgnoreCase("Telkom"))
-             {
-                 String message="Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageName+" For: "+receiver+" Worth KSH "+value+" Order Number: "+paidorderNumber;
-                 sendSms(context,message,context.getResources().getString(R.string.telkomNumber),true);
 
-             }
-             else{
-                 sendAirtime(receiver,orderDetails,value,context);
-             }
+
+                    String message="Order Number; "+orderNumber+"\n"+"Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageName+" For: "+receiver+" Worth KSH "+value+" MpesaCode: "+mpesaCode;
+                    sendSms(context,message,context.getResources().getString(R.string.adminNumber),true);
+                    db.updateOrderDetails(orderNumber,"status","Processing");
+                    String replyMessageToClient="";
+                    replyMessageToClient="Order; "+orderNumber+"\n"+packageName+" will be sent to "+receiver+" in 2-5 minutes. Kindly confirm your balances. Ref "+mpesaCode+"\n\n"+"Save more with us. Share with your family and friends.\n";
+                    if(packageDataMap.get("deviceId")!=null && !packageDataMap.get("deviceId").toString().isEmpty())
+                    {
+                        sendConfirmationNotifcation(this,replyMessageToClient,packageDataMap.get("deviceId").toString(),orderNumber+" -Processing",replyMessageToClient);
+                    }
+                    if(packageDetailsMap.get("payingPhone").equals(packageDetailsMap.get("rechargePhone")))
+                    {
+                        sendSms(context,packageDetailsMap.get("payingPhone").toString(),replyMessageToClient,true);
+                    }
+                    else{
+                        sendSms(context,replyMessageToClient,packageDetailsMap.get("rechargePhone").toString(),true);
+                        sendSms(context,replyMessageToClient,packageDetailsMap.get("payingPhone").toString(),true);
+                    }
+
+
+
+
+                }
+                else
+                {
+                    sendAirtime(receiver,orderDetails,value,this);
+                    packageDataMap=db.getRequestDetails(orderNumber);
+                    db.updateOrderDetails(orderNumber,"status","Complete.");
+
+
+                    String replyMessageToClient="Order "+orderNumber+".\n"+plan+" sent. Kindly confirm your balances \n\n If Not Received, Kindly Contact Us On: "+context.getResources().getString(R.string.adminNumber);
+
+                   if(packageDataMap.get("deviceId")!=null && !packageDataMap.get("deviceId").toString().isEmpty())
+                   {
+                       sendConfirmationNotifcation(this,replyMessageToClient,packageDataMap.get("deviceId").toString(),orderNumber+" -Completed",replyMessageToClient);
+                   }
+                    if(packageDataMap.get("payingPhone").equals(packageDataMap.get("rechargePhone")))
+                    {
+                        sendSms(context,replyMessageToClient,packageDataMap.get("rechargePhone").toString(),true);
+                    }
+                    else{
+                        sendSms(context,replyMessageToClient,packageDataMap.get("rechargePhone").toString(),true);
+                        sendSms(context,replyMessageToClient,packageDataMap.get("payingPhone").toString(),true);
+                    }
+                }
+
+
+
+
+
             }
             else{
+
+
+
+               // Map   packageDetailsMap=db.getRequestDetails(orderNumber);
+
                 if(plan.equalsIgnoreCase("No Expiry Call And SMS")||plan.equalsIgnoreCase("No Expiry Bundles"))
                 {
                     value = (amount * 100) / (100- Integer.valueOf(commm));
-                    String message="Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageName+" For: "+receiver+" Worth KSH "+value+" Order Number: "+paidorderNumber;
-                    sendSms(context,message,context.getResources().getString(R.string.telkomNumber),true);
+                    String message="Order Number; "+orderNumber+"\n"+"Buy "+Globals.networkProviderDeterminer(receiver)+" PlanType: "+plantype+" "+packageName+" For: "+receiver+" Worth KSH "+value+" MpesaCode: "+mpesaCode;
+                    sendSms(context,message,context.getResources().getString(R.string.adminNumber),true);
+                    String replyMessageToClient="";
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    replyMessageToClient="Order; "+orderNumber+"\n"+packageDetailsMap.get("planName")+" will be sent to "+packageDetailsMap.get("rechargingPhone")+" in 2-5 minutes. Kindly confirm your balances. Ref "+mpesaCode+"\n"+"Save more with us. Share with your family and friends.\n";
+
+                    if(packageDataMap.get("deviceId")!=null && !packageDataMap.get("deviceId").toString().isEmpty())
+                    {
+                        sendConfirmationNotifcation(this,replyMessageToClient,packageDataMap.get("deviceId").toString(),orderNumber+" -Processing",replyMessageToClient);
+                    }
+                    sendSms(context,replyMessageToClient,receiver,true);
+
+
                 }
                 else {
-                    value = Integer.valueOf(db.getPlanCostDetails(plan,Globals.networkProviderDeterminer(receiver)).get("actualCost"));
-                    String message="Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageName+" For: "+receiver+" Worth KSH "+value+" Order Number: "+paidorderNumber;
-                    sendSms(context,message,context.getResources().getString(R.string.telkomNumber),true);
-                }
 
+                    value = Integer.valueOf(db.getPlanCostDetails(plan,Globals.networkProviderDeterminer(receiver)).get("actualCost"));
+                    String message="Order Number; "+orderNumber+"\n"+"Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageDetailsMap.get("planType").toString()+" "+packageName+" For: "+receiver+" Worth KSH "+value+" MpesaCode: "+mpesaCode+" Amount Paid Ksh :"+amount+" Cost:Ksh "+costPrice;
+                    sendSms(context,message,context.getResources().getString(R.string.adminNumber),true);
+                    String replyMessageToClient="";
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    replyMessageToClient="Order; "+orderNumber+"\n"+packageDetailsMap.get("planName")+" will be sent to "+receiver+" in 2-5 minutes. Kindly confirm your balances. Ref "+mpesaCode+"\n"+"Save more with us. Share with your family and friends.\n";
+
+                    if(packageDataMap.get("deviceId")!=null && !packageDataMap.get("deviceId").toString().isEmpty())
+                    {
+                        sendConfirmationNotifcation(this,replyMessageToClient,packageDataMap.get("deviceId").toString(),orderNumber+" -Processing",replyMessageToClient);
+                    }
+                    sendSms(context,replyMessageToClient,receiver,true);
+
+
+
+                }
+                db.updateOrderDetails(orderNumber,"status","Processing.");
 
             }
-
 
 
         }
@@ -750,16 +863,16 @@ return true;
             System.err.println("Receiver:"+receiver+" Plan Cost:"+commm+" plan"+plan);
             value = (int) ((Double.valueOf(amount) * (((100+ Double.valueOf(commm)))/100)));
             SimpleDateFormat format=new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
-            db.registerOrder(packageName,"",value,Globals.networkProviderDeterminer(receiver),receiver, String.valueOf(format.format(new Date())),"Un known","SMS",mpesaCode,paidorderNumber);
-            if(Globals.networkProviderDeterminer(receiver).equalsIgnoreCase("Telkom"))
-            {
-                String message="Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageName+" For: "+receiver+" Worth KSH "+value+" Order Number: "+paidorderNumber;
-                sendSms(context,message,context.getResources().getString(R.string.telkomNumber),true);
-
-            }
-            else{
-                sendAirtime(receiver,orderDetails,value,context);
-            }
+      //      db.registerOrder(packageName,"",value,Globals.networkProviderDeterminer(receiver),receiver, String.valueOf(format.format(new Date())),"Un known","SMS",mpesaCode,paidorderNumber);
+//            if(Globals.networkProviderDeterminer(receiver).equalsIgnoreCase("Telkom"))
+//            {
+//                String message="Buy "+Globals.networkProviderDeterminer(receiver)+" "+packageName+" For: "+receiver+" Worth KSH "+value+" Order Number: "+paidorderNumber;
+//                sendSms(context,message,context.getResources().getString(R.string.telkomNumber),true);
+//
+//            }
+//            else{
+//                sendAirtime(receiver,orderDetails,value,context);
+//            }
         }
 
 
@@ -806,12 +919,18 @@ return true;
                 if(sim1)
                 {
                     //SendSMS From SIM One
-                    SmsManager.getSmsManagerForSubscriptionId(simInfo1.getSubscriptionId()).sendTextMessage(destination, null, message, null, null);
+                    SmsManager sms = SmsManager.getDefault();
+                    ArrayList<String> parts = sms.divideMessage(message);
+                    SmsManager.getSmsManagerForSubscriptionId(simInfo1.getSubscriptionId()).sendMultipartTextMessage(destination, null, parts, null, null);
+
 
                 }
                 else{
                     //SendSMS From SIM Two
-                    SmsManager.getSmsManagerForSubscriptionId(simInfo2.getSubscriptionId()).sendTextMessage(destination, null, message, null, null);
+                    SmsManager sms = SmsManager.getDefault();
+                    ArrayList<String> parts = sms.divideMessage(message);
+                    SmsManager.getSmsManagerForSubscriptionId(simInfo2.getSubscriptionId()).sendMultipartTextMessage(destination, null, parts, null, null);
+
 
                 }
 
@@ -1007,16 +1126,254 @@ return true;
 
 
     }
-    public void ToastShopClose(Context context)
+    public void authTok(Context context)
     {
-       // Toast.makeText(context,"Received Request But The Server Turned Off",Toast.LENGTH_LONG).show();
+
+        Gson gson=new Gson();
+        JSONObject json = new JSONObject();
+        try {
+            String app_key = "yBIf50DIGeUu2dRzZHWVOurNj0nAtA19";
+            String app_secret = "oadlZaBFbXCaEkzZ";
+            String appKeySecret = app_key + ":" + app_secret;
+            byte[] bytes = appKeySecret.getBytes("ISO-8859-1");
+            String auth = Base64.encode(bytes);
+            String url="https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
+            JSONArray array=new JSONArray();
+
+
+
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,
+                    null,
+                    new com.android.volley.Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            AuthToken authToken;
+                            String REQUESTTYPE="Plan Sent";
+                            System.err.println("Resssss....."+response);
+                            authToken = gson.fromJson(response.toString(), AuthToken.class);
+                            issueSTK(authToken.getToken(),payingPhone,paymentValue,rechargingPhone,plan,registrationId,getResources().getString(R.string.clientFcmToken),getResources().getString(R.string.serverFcmKey),configs.getServerId(),orderNumber);
+
+
+
+                            Log.d("MUR", "onResponse: "+response);
+                        }
+                    }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.err.println(error);
+                    Log.d("MUR", "onError............: "+error.networkResponse);
+                }
+            }
+            ){
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type","application/json");
+                    header.put("cache-control", "no-cache");
+                    header.put("authorization", "Basic " + auth);
+                    return header;
+                }
+            };
+
+            mRequestQue.add(request);
+        }
+        catch (Exception e)
+
+        {
+            e.printStackTrace();
+        }
+
+
+
+
+
+
     }
 
 
-    public void airtimeProcessor(Context context)
+
+
+
+    public void issueSTK(String token, String PhoneNumber, double Amount, String rechargingPhone, String requestType,String deviceId,String fcmToken,String serverAdress,String serverId,String orderNumber)
+    {
+        if(PhoneNumber.startsWith("0"))
+        {
+            PhoneNumber=PhoneNumber.replaceFirst("0", "254");
+        }
+        if(PhoneNumber.startsWith("+254"))
+        {
+
+            PhoneNumber=PhoneNumber.substring(1);
+        }
+        Gson gson=new Gson();
+        JSONObject json = new JSONObject();
+
+
+
+        try {
+
+            json.put("BusinessShortCode","7631176");
+            json.put("Password","NzYzMTE3NmU4ZjIyM2U3OTBlNWIxMWVhMzliMjZiNjk2N2ExOGQzYzA5OGJiMjI3YjZiNWJiZDE0OWIyNDA5MTJlZGJhODUyMDE5MDIxNjE2NTYyNw==");
+            json.put("Timestamp","20190216165627");
+            json.put("TransactionType","CustomerBuyGoodsOnline");
+            json.put("Amount",Amount);
+            json.put("PartyA","254707353225");
+            json.put("PartyB","9587279");
+            json.put("PhoneNumber",PhoneNumber);
+            json.put("CallBackURL","https://api.lunar.cyou/api/lipacallback.php");
+            json.put("AccountReference","Airtime");
+            json.put("TransactionDesc","Purchase");
+
+            String url="https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
+
+
+
+
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+                    json,
+                    new com.android.volley.Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+
+                            try {
+                                if(response.get("ResponseCode").equals("0"))
+                                {
+                                   saveAirtimeRequest(rechargingPhone,Amount,response.getString("CheckoutRequestID"),response.getString("MerchantRequestID"),requestType,deviceId,fcmToken,serverAdress,serverId,orderNumber);
+
+                                }
+                                else {
+                                    System.err.println("Error"+response.toString());
+
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                            Log.d("MUR", "onResponse: "+response);
+                        }
+                    }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.err.println(json);
+                    // As of f605da3 the following should work
+                    NetworkResponse response = error.networkResponse;
+                    if (error instanceof ServerError && response != null) {
+                        try {
+                            String res = new String(response.data,
+                                    HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                            // Now you can use any deserializer to make sense of data
+                            JSONObject obj = new JSONObject(res);
+                            System.err.println(res);
+                        } catch (UnsupportedEncodingException e1) {
+                            // Couldn't properly decode data to string
+                            e1.printStackTrace();
+                        } catch (JSONException e2) {
+                            // returned data is not JSONObject?
+                            e2.printStackTrace();
+                        }
+                    }
+                }
+            }
+            ){
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type","application/json");
+
+                    header.put("authorization", "Bearer " + token);
+                    return header;
+                }
+            };
+            request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5, 1.0f));
+
+            mRequestQue.add(request);
+        }
+        catch (Exception e)
+
+        {
+            e.printStackTrace();
+        }
+
+
+
+
+
+
+    }
+
+    public void saveAirtimeRequest(String phone, double amount, String checkoutRequestID, String merchantRequestID, String requestType,String deviceId,String fcmToken,String serverAdress,String serverId,String orderNumber)
     {
 
+   try {
 
-        // Toast.makeText(context,"Received Request But The Server Turned Off",Toast.LENGTH_LONG).show();
+       JSONObject data = new JSONObject();
+
+       data.put("amount",amount);
+       data.put("status","0");
+       data.put("phoneNumber",phone);
+       data.put("MerchantRequestID",merchantRequestID);
+       data.put("CheckoutRequestID",checkoutRequestID);
+       data.put("requestType",requestType);
+       data.put("tillNumber","9587279");
+       data.put("deviceId",deviceId);
+       data.put("fcmToken",fcmToken);
+       data.put("serverAddress",serverAdress);
+       data.put("serverId",serverId);
+       data.put("orderNumber",orderNumber);
+   int e=0;
+       String url = "https://api.lunar.cyou/api/airtimerequest.php";
+
+       JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+               data,
+               new com.android.volley.Response.Listener<JSONObject>() {
+                   @Override
+                   public void onResponse(JSONObject response) {
+                       AuthToken authToken;
+                       String REQUESTTYPE="Plan Sent";
+                       System.err.println("Resssss....."+response);
+                       try {
+                           if(response.get("responseCode").equals("200"))
+                           {
+
+                               System.err.println("sucess");
+
+                           }
+                           else {
+
+                           }
+                       } catch (JSONException e) {
+                           e.printStackTrace();
+                       }
+
+
+                       Log.d("MUR", "onResponse: "+response);
+                   }
+               }, new com.android.volley.Response.ErrorListener() {
+           @Override
+           public void onErrorResponse(VolleyError error) {
+               System.err.println(error);
+               Log.d("MUR", "onError............: "+error.networkResponse);
+           }
+       }
+       ){
+           @Override
+           public Map<String, String> getHeaders() throws AuthFailureError {
+               Map<String, String> header = new HashMap<>();
+               header.put("content-type","application/json");
+
+               return header;
+           }
+       };
+       request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5, 1.0f));
+       mRequestQue.add(request);
+
+   }
+   catch (Exception sq){
+
+   }
+
     }
 }

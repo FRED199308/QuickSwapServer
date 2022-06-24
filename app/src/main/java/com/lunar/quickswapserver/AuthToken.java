@@ -1,12 +1,24 @@
 package com.lunar.quickswapserver;
 
 
+import android.content.Context;
+import android.util.Log;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 import org.apache.xerces.impl.dv.util.Base64;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -46,6 +58,17 @@ public class AuthToken {
     }
 
     public  AuthToken getAccessToken() throws UnsupportedEncodingException {
+
+
+
+
+
+
+
+
+
+
+
         try {
             String app_key = "yBIf50DIGeUu2dRzZHWVOurNj0nAtA19";
             String app_secret = "oadlZaBFbXCaEkzZ";

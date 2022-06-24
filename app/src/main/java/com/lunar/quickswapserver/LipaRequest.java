@@ -131,24 +131,33 @@ public class LipaRequest {
                     .build();
 
             Response response = client.newCall(request).execute();
-            System.out.println("Amount"+Amount);
-        //     System.out.println(response.body().string());
+
+
+
+            System.out.println(response.body().string());
+
             Gson gson = new Gson();
-            LipaNaMpesaRequest lipaNaMpesaRequest = gson.fromJson(response.body().string(), LipaNaMpesaRequest.class);
-            response.close();
-            if( lipaNaMpesaRequest.getResponseCode()!=null && lipaNaMpesaRequest.getResponseCode().equalsIgnoreCase("0"))
-            {
-
-
-Map map=saveAirtimeRequest(0,rechargingPhone,Amount,lipaNaMpesaRequest.getCheckoutRequestID(),lipaNaMpesaRequest.getMerchantRequestID(),requestType,deviceId,fcmToken,serverAdress,serverId,orderNumber);
 
 
 
-            }
-            else {
-
-            }
-            return lipaNaMpesaRequest;
+            System.out.println("Amount"+Amount);
+        //
+//
+//            LipaNaMpesaRequest lipaNaMpesaRequest = gson.fromJson(response.body().string(), LipaNaMpesaRequest.class);
+//            response.close();
+//            if( lipaNaMpesaRequest.getResponseCode()!=null && lipaNaMpesaRequest.getResponseCode().equalsIgnoreCase("0"))
+//            {
+//
+//
+//Map map=saveAirtimeRequest(0,rechargingPhone,Amount,lipaNaMpesaRequest.getCheckoutRequestID(),lipaNaMpesaRequest.getMerchantRequestID(),requestType,deviceId,fcmToken,serverAdress,serverId,orderNumber);
+//
+//
+//
+//            }
+//            else {
+//
+//            }
+            return null;
 
         } catch (IOException ex) {
             Logger.getLogger(LipaNaMpesaRequest.class.getName()).log(Level.SEVERE, null, ex);
@@ -212,11 +221,11 @@ in.close();
             }
             else {
                 errorCounter++;
-                if(errorCounter<3)
+                if(errorCounter<5)
                 {
                     System.err.println("Retrying.....");
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

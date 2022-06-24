@@ -51,7 +51,7 @@ this.context=context;
         {
 System.out.println(list);
             holder.sn.setText(String.valueOf(position+1));
-            holder.phone.setText(((Map) list.get(position)).get("phone").toString());
+            holder.phone.setText(((Map) list.get(position)).get("rechargePhone").toString());
             holder.amount.setText(((Map) list.get(position)).get("cost").toString());
             holder.network.setText(((Map) list.get(position)).get("network").toString());
             holder.date.setText(((Map) list.get(position)).get("dateRequested").toString());

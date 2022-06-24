@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class DBHelper extends SQLiteOpenHelper {
@@ -104,7 +105,7 @@ public  void creatLogsTable()
 
         db.execSQL(
                 "create table plansRequests " +
-                        "( planName text,plantype text,cost text, network  text,phone text,dateRequested DATETIME,status text,mode text,orderNumber text,payingPhone text,requestingPhone text,deviceId text)"
+                        "( planName text,plantype text,cost text, network  text,payingPhone text,dateRequested text,status text,mode text,orderNumber text,rechargePhone text,deviceId text)"
         );
         db.close();
     }
@@ -115,9 +116,8 @@ public  void creatLogsTable()
 
         db.execSQL(
                 "create table orders " +
-                        "( planName text,plantype text,cost text, network  text,phone text,dateRequested DATETIME,status text,paymentCode text,orderNumber text )"
+                        "( planName text,plantype text,cost text, network  text,payingPhone text,dateRequested text,status text,paymentCode text,orderId text,rechargePhone text,name text,amountPaid text)"
         );
-
         db.close();
     }
 
@@ -139,69 +139,39 @@ public  void creatLogsTable()
 
     }
 
-    public String registerPlanRequest(String planName, String planType, int amount, String network, String phone, String dateRequested, String status, String mode,String orderNumber,String payingPhone) {
+    public String registerPlanRequest(String planName, String planType, int amount, String network,String payingNumber,String dateRequested,String status,String mode,String rechargeNumber,String orderNumber,String deviceId) {
 
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-            ContentValues contentValues = new ContentValues();
+        ContentValues contentValues = new ContentValues();
 
-            contentValues.put("planName", planName);
-            contentValues.put("plantype", planType);
-            contentValues.put("cost", amount);
+        contentValues.put("planName", planName);
+        contentValues.put("plantype", planType);
+        contentValues.put("cost", amount);
 
-            contentValues.put("network", network);
-            contentValues.put("phone", phone);
-            contentValues.put("dateRequested", dateRequested);
-            contentValues.put("status", status);
-            contentValues.put("mode", mode);
-            contentValues.put("payingPhone", payingPhone);
-            contentValues.put("orderNumber", orderNumber);
+        contentValues.put("network", network);
+        contentValues.put("payingPhone", payingNumber);
+        contentValues.put("rechargePhone", rechargeNumber);
+        contentValues.put("dateRequested", dateRequested);
+        contentValues.put("status", status);
+        contentValues.put("mode", mode);
+        contentValues.put("orderNumber", orderNumber);
+        contentValues.put("deviceId", deviceId);
 
-
-            db.insert("plansRequests", null, contentValues);
-            db.close();
-            return "saved";
-
-
-
-
-
-
-
-
-    }
-    @SuppressLint("Range")
-    public Map<String,String> getRequestDetails(String orderNumber) {
-        ArrayList array_list = new ArrayList();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from plansRequests where  orderNumber='"+orderNumber+"'   order by dateRequested asc", null );
-        res.moveToFirst();
-
-        Map map=new HashMap();
-        if(res.moveToFirst()){
-            map=new HashMap();
-            map.put("planName",res.getString(res.getColumnIndex("planName")));
-            map.put("cost",res.getString(res.getColumnIndex("cost")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            map.put("planType",res.getString(res.getColumnIndex("plantype")));
-            map.put("payingPhone",res.getString(res.getColumnIndex("payingPhone")));
-            map.put("rechargePhone",res.getString(res.getColumnIndex("phone")));
-            map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-            map.put("orderNumber",res.getString(res.getColumnIndex("orderNumber")));
-
-
-
-
-            System.err.println("Request Deatils:"+map);
-
-            res.moveToNext();
-        }
-        res.close();
+        db.insert("plansRequests", null, contentValues);
         db.close();
-        return map;
+        return "saved";
+
+
+
+
+
+
+
+
     }
+
 
 
     public String registerAgent(String agentName, String contact, String date) {
@@ -246,7 +216,7 @@ public  void creatLogsTable()
 
 
     }
-    public String registerOrder(String planName, String planType, int amount, String network, String phone, String dateRequested, String status, String mode, String paymentCode,String orderNumber) {
+    public String registerOrder(String planName, String planType, int airtimeAmount, String network, String payingPhone, String dateRequested, String status, String mode, String paymentCode,String name,String orderId,String rechargePhone,int amountPaid) {
 
 
         SQLiteDatabase db = this.getReadableDatabase();
@@ -255,17 +225,22 @@ public  void creatLogsTable()
 
         contentValues.put("planName", planName);
         contentValues.put("plantype", planType);
-        contentValues.put("cost", amount);
+        contentValues.put("cost", airtimeAmount);
 
         contentValues.put("network", network);
-        contentValues.put("phone", phone);
+        contentValues.put("payingPhone", payingPhone);
+        contentValues.put("rechargePhone", rechargePhone);
+
 
 
         contentValues.put("dateRequested", dateRequested);
 
         contentValues.put("status", status);
-        contentValues.put("orderNumber", orderNumber);
         contentValues.put("paymentCode", paymentCode);
+        contentValues.put("orderId", orderId);
+        contentValues.put("name", name);
+        contentValues.put("amountPaid", amountPaid);
+
 
         db.insert("orders", null, contentValues);
         db.close();
@@ -377,32 +352,35 @@ public  void creatLogsTable()
 
     @SuppressLint("Range")
     public ArrayList getAllLOgs() {
+
         ArrayList array_list = new ArrayList();
 
         //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from airtimelogs order by rechargeDate desc", null );
         res.moveToFirst();
+        try {
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("name",res.getString(res.getColumnIndex("name")));
+                map.put("phone",res.getString(res.getColumnIndex("phone")));
+                map.put("amount",res.getString(res.getColumnIndex("amount")));
+                map.put("rechargeDate",res.getString(res.getColumnIndex("rechargeDate")));
+                map.put("airtimeValue",res.getString(res.getColumnIndex("airtimevalue")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("remarks",res.getString(res.getColumnIndex("remarks")));
+                map.put("response",res.getString(res.getColumnIndex("response")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                array_list.add(map);
 
-        while(res.isAfterLast() == false){
-            Map map=new HashMap();
-           map.put("name",res.getString(res.getColumnIndex("name")));
-    map.put("phone",res.getString(res.getColumnIndex("phone")));
-       map.put("amount",res.getString(res.getColumnIndex("amount")));
-         map.put("rechargeDate",res.getString(res.getColumnIndex("rechargeDate")));
-            map.put("airtimeValue",res.getString(res.getColumnIndex("airtimevalue")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-            map.put("remarks",res.getString(res.getColumnIndex("remarks")));
- map.put("response",res.getString(res.getColumnIndex("response")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            array_list.add(map);
+                res.moveToNext();
+            }
+            db.close();
+            res.close();
+            System.out.println("heheh "+array_list);
+            return array_list;
+        } finally {  res.close(); db.close();}
 
-            res.moveToNext();
-        }
-        db.close();
-        res.close();
-        System.out.println("heheh "+array_list);
-        return array_list;
     }
 
     public ArrayList getAllplans() {
@@ -412,55 +390,65 @@ public  void creatLogsTable()
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from plans", null );
         res.moveToFirst();
+        try {
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("planname",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
 
-        while(res.isAfterLast() == false){
-            Map map=new HashMap();
-            map.put("planname",res.getString(res.getColumnIndex("planName")));
-            map.put("cost",res.getString(res.getColumnIndex("cost")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                array_list.add(map);
 
-            array_list.add(map);
-
-            res.moveToNext();
-        }
-        System.out.println("heheh "+array_list);
-        res.close();
+                res.moveToNext();
+            }
+            System.out.println("heheh "+array_list);
+            res.close();
 
 
-        db.close();
-        return array_list;
+            db.close();
+            return array_list;
+        } finally {  res.close(); db.close();}
+
     }
     public ArrayList getAllOrders() {
         ArrayList array_list = new ArrayList();
+   //hp = new HashMap();
 
-        //hp = new HashMap();
+        System.out.println("heheh "+array_list);
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from orders  order by dateRequested desc", null );
         res.moveToFirst();
 
-        while(res.isAfterLast() == false){
-            Map map=new HashMap();
-            map.put("planname",res.getString(res.getColumnIndex("planName")));
-            map.put("cost",res.getString(res.getColumnIndex("cost")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            map.put("planType",res.getString(res.getColumnIndex("plantype")));
-            map.put("phone",res.getString(res.getColumnIndex("phone")));
-
-            map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-            map.put("paymentCode",res.getString(res.getColumnIndex("paymentCode")));
+        try {
 
 
 
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("planName",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                map.put("rechargePhone",res.getString(res.getColumnIndex("rechargePhone")));
+
+                map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("paymentCode",res.getString(res.getColumnIndex("paymentCode")));
+                map.put("name",res.getString(res.getColumnIndex("name")));
+                map.put("orderId",res.getString(res.getColumnIndex("orderId")));
+                map.put("amountPaid",res.getString(res.getColumnIndex("amountPaid")));
 
 
-            array_list.add(map);
 
-            res.moveToNext();
+
+
+                array_list.add(map);
+
+                res.moveToNext();
+            }
         }
-        res.close();
-        db.close();
+        finally {  res.close(); db.close();}
         return array_list;
     }
 
@@ -471,23 +459,25 @@ public  void creatLogsTable()
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from plans where  plantype='"+category+"' and network='"+network+"'", null );
         res.moveToFirst();
+        try {
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("planname",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                map.put("agentCost",res.getString(res.getColumnIndex("agentCost")));
 
-        while(res.isAfterLast() == false){
-            Map map=new HashMap();
-            map.put("planname",res.getString(res.getColumnIndex("planName")));
-            map.put("cost",res.getString(res.getColumnIndex("cost")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            map.put("planType",res.getString(res.getColumnIndex("plantype")));
-            map.put("agentCost",res.getString(res.getColumnIndex("agentCost")));
+                array_list.add(map);
 
-            array_list.add(map);
+                res.moveToNext();
+            }
+            res.close();
+            db.close();
+            System.out.println("heheh "+array_list);
+            return array_list;
+        } finally {  res.close();}
 
-            res.moveToNext();
-        }
-        res.close();
-        db.close();
-        System.out.println("heheh "+array_list);
-        return array_list;
     }
     public Map<String, String> getPlanCostDetails(String planName, String network) {
         ArrayList array_list = new ArrayList();
@@ -496,31 +486,33 @@ public  void creatLogsTable()
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from plans where  planName='"+planName+"' and network='"+network+"'", null );
         res.moveToFirst();
+        try {
+            if(res.moveToFirst()){
+                Map map=new HashMap();
+                map.put("planName",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("actualCost",res.getString(res.getColumnIndex("actualCost")));
+                map.put("agentCost",res.getString(res.getColumnIndex("agentCost")));
+                db.close();
+                res.close();
+                return  map;
 
-       if(res.moveToFirst()){
-            Map map=new HashMap();
-           map.put("planName",res.getString(res.getColumnIndex("planName")));
-           map.put("cost",res.getString(res.getColumnIndex("cost")));
-           map.put("network",res.getString(res.getColumnIndex("network")));
-           map.put("actualCost",res.getString(res.getColumnIndex("actualCost")));
-           map.put("agentCost",res.getString(res.getColumnIndex("agentCost")));
-           db.close();
-           res.close();
-          return  map;
 
+            }
+            else{
+                Map map=new HashMap();
+                map.put("planName","");
+                map.put("cost","");
+                map.put("network","");
+                map.put("actualCost","");
+                map.put("agentCost","");
 
-        }
-       else{
-           Map map=new HashMap();
-           map.put("planName","");
-           map.put("cost","");
-           map.put("network","");
-           map.put("actualCost","");
-           map.put("agentCost","");
-           db.close();
-           res.close();
-           return map;
-       }
+                res.close();
+                return map;
+            }
+
+        } finally {  res.close(); db.close();}
 
     }
 
@@ -531,59 +523,61 @@ public  void creatLogsTable()
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from agents where  contact='"+contact+"'", null );
         res.moveToFirst();
+        try {
+            if(res.moveToFirst()){
+                Map map=new HashMap();
+                map.put("agentName",res.getString(res.getColumnIndex("agentName")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("contact",res.getString(res.getColumnIndex("contact")));
 
-        if(res.moveToFirst()){
-            Map map=new HashMap();
-            map.put("agentName",res.getString(res.getColumnIndex("agentName")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-            map.put("contact",res.getString(res.getColumnIndex("contact")));
-            db.close();
-            res.close();
-            return  map;
+                res.close();
+                return  map;
 
 
-        }
-        else{
-            Map map=new HashMap();
-            map.put("agentName","");
-            db.close();
-            res.close();
-            return map;
-        }
+            }
+            else{
+                Map map=new HashMap();
+                map.put("agentName","");
+                db.close();
+                res.close();
+                return map;
+            }
+        } finally {  res.close();db.close();}
+
 
     }
 
-    public ArrayList getOrderDetails(String phone) {
+    public ArrayList getAllRequestDetails() {
         ArrayList array_list = new ArrayList();
-
-        //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from orders where  phone='"+phone+"'   order by dateRequested desc", null );
+        Cursor res =  db.rawQuery( "select * from plansRequests   order by dateRequested asc", null );
         res.moveToFirst();
-
-
-        while(res.isAfterLast() == false){
+        try {
             Map map=new HashMap();
-            map.put("planname",res.getString(res.getColumnIndex("planName")));
-            map.put("cost",res.getString(res.getColumnIndex("cost")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            map.put("planType",res.getString(res.getColumnIndex("plantype")));
-            map.put("phone",res.getString(res.getColumnIndex("phone")));
-            map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-            map.put("paymentCode",res.getString(res.getColumnIndex("paymentCode")));
-            map.put("orderNumber",res.getString(res.getColumnIndex("orderNumber")));
+            while(res.isAfterLast() == false){
+                map=new HashMap();
+                map.put("planName",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                map.put("payingPhone",res.getString(res.getColumnIndex("payingPhone")));
+                map.put("rechargePhone",res.getString(res.getColumnIndex("rechargePhone")));
+                map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("orderNumber",res.getString(res.getColumnIndex("orderNumber")));
+                map.put("deviceId",res.getString(res.getColumnIndex("deviceId")));
 
 
+                array_list.add(map);
 
+                System.err.println("Request Deatils:"+map);
 
-            array_list.add(map);
+                res.moveToNext();
+            }
 
-            res.moveToNext();
-        }
-        db.close();
-        res.close();
-        return array_list;
+            return array_list;
+        } finally {  res.close();db.close();}
+
     }
 
 
@@ -594,27 +588,29 @@ public  void creatLogsTable()
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select rowid,* from agents  order by dateEnrolled desc", null );
         res.moveToFirst();
-
-System.err.println("Reached");
-        while(res.isAfterLast() == false){
-            Map map=new HashMap();
-            map.put("agentName",res.getString(res.getColumnIndex("agentName")));
-            map.put("contact",res.getString(res.getColumnIndex("contact")));
-            map.put("dateEnrolled",res.getString(res.getColumnIndex("dateEnrolled")));
-            map.put("rowId",res.getString(res.getColumnIndex("rowid")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-
-
+        try {
+            System.err.println("Reached");
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("agentName",res.getString(res.getColumnIndex("agentName")));
+                map.put("contact",res.getString(res.getColumnIndex("contact")));
+                map.put("dateEnrolled",res.getString(res.getColumnIndex("dateEnrolled")));
+                map.put("rowId",res.getString(res.getColumnIndex("rowid")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
 
 
 
-            array_list.add(map);
-System.err.println(map);
-            res.moveToNext();
-        }
-        db.close();
-        res.close();
-        return array_list;
+
+
+                array_list.add(map);
+                System.err.println(map);
+                res.moveToNext();
+            }
+            db.close();
+            res.close();
+            return array_list;
+        } finally {  res.close();db.close();}
+
     }
 
 
@@ -676,6 +672,155 @@ db.close();
         return true;
     }
 
+    public ArrayList getOrderDetails(String phone) {
+        ArrayList array_list = new ArrayList();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select * from orders where  phone='"+phone+"'   order by dateRequested asc", null );
+        res.moveToFirst();
+        try {
+
+            while(res.moveToFirst()){
+                Map map=new HashMap();
+                map.put("planName",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                map.put("phone",res.getString(res.getColumnIndex("phone")));
+                map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("paymentCode",res.getString(res.getColumnIndex("paymentCode")));
+
+
+
+
+                array_list.add(map);
+
+                res.moveToNext();
+            }
+
+            return array_list;
+        } finally {  res.close();}
+
+    }
+
+    public Map getFullOrderDetails(String orderId) {
+        orderId=orderId.toUpperCase();
+        ArrayList array_list = new ArrayList();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select * from orders where  orderId='"+orderId+"' OR paymentCode='"+orderId+"' COLLATE NOCASE   order by dateRequested asc  ", null );
+        res.moveToFirst();
+        try {
+            Map map=new HashMap();
+            if(res.moveToFirst()){
+                map=new HashMap();
+                map.put("planName",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                map.put("payingPhone",res.getString(res.getColumnIndex("payingPhone")));
+                map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("paymentCode",res.getString(res.getColumnIndex("paymentCode")));
+                map.put("orderId",res.getString(res.getColumnIndex("orderId")));
+                map.put("name",res.getString(res.getColumnIndex("name")));
+                map.put("rechargePhone",res.getString(res.getColumnIndex("rechargePhone")));
+                map.put("amountPaid",res.getString(res.getColumnIndex("amountPaid")));
+
+
+
+
+
+
+                res.moveToNext();
+            }
+
+            return map;
+        } finally {  res.close();}
+
+    }
+
+
+    public Map getMpesaCode(String mpesaCode) {
+        ArrayList array_list = new ArrayList();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select * from mpesaCodes where  mpesaCode='"+mpesaCode+"'  COLLATE NOCASE", null );
+        res.moveToFirst();
+        try {
+            Map map=new HashMap();
+            if(res.moveToFirst()){
+                map=new HashMap();
+                map.put("mpesaCode",res.getString(res.getColumnIndex("mpesaCode")));
+
+                res.moveToNext();
+            }
+
+            return map;
+        } finally {  res.close();}
+
+    }
+    public HashSet getdeviceIds() {
+        HashSet set = new HashSet();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select  deviceId  from  deviceIds   order by dateRequested asc ", null );
+        res.moveToFirst();
+        try {
+            while(res.isAfterLast() == false){
+                set.add(res.getString(res.getColumnIndex("deviceId")).replace("+254","0"));
+
+                res.moveToNext();
+            }
+
+
+            res =  db.rawQuery( "select distinct deviceId  from  plansRequests   order by dateRequested asc", null );
+            res.moveToFirst();
+
+            while(res.isAfterLast() == false){
+                set.add(res.getString(res.getColumnIndex("deviceId")).replace("+254","0"));
+
+                res.moveToNext();
+            }
+
+
+            return set;
+        } finally {  res.close();}
+
+    }
+
+
+    public Map<String,String> getRequestDetails(String orderNumber) {
+        orderNumber=orderNumber.toUpperCase();
+        ArrayList array_list = new ArrayList();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select * from plansRequests where  orderNumber='"+orderNumber+"'  COLLATE NOCASE  order by dateRequested asc ", null );
+        res.moveToFirst();
+        try {
+            Map map=new HashMap();
+            if(res.moveToFirst()){
+                map=new HashMap();
+                map.put("planName",res.getString(res.getColumnIndex("planName")));
+                map.put("cost",res.getString(res.getColumnIndex("cost")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                map.put("planType",res.getString(res.getColumnIndex("plantype")));
+                map.put("payingPhone",res.getString(res.getColumnIndex("payingPhone")));
+                map.put("rechargePhone",res.getString(res.getColumnIndex("rechargePhone")));
+                map.put("dateRequested",res.getString(res.getColumnIndex("dateRequested")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("orderNumber",res.getString(res.getColumnIndex("orderNumber")));
+                map.put("deviceId",res.getString(res.getColumnIndex("deviceId")));
+
+
+
+
+                System.err.println("Request Deatils:"+map);
+
+                res.moveToNext();
+            }
+
+            return map;
+        } finally {  res.close();}
+
+    }
 
     public ArrayList<String> FilterLOgs(String status) {
         ArrayList array_list = new ArrayList();
@@ -684,25 +829,45 @@ System.err.println("status:"+status);
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select * from airtimelogs where remarks='"+status+"' order by rechargeDate desc", null );
         res.moveToFirst();
+        try {
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("name",res.getString(res.getColumnIndex("name")));
+                map.put("phone",res.getString(res.getColumnIndex("phone")));
+                map.put("amount",res.getString(res.getColumnIndex("amount")));
+                map.put("rechargeDate",res.getString(res.getColumnIndex("rechargeDate")));
+                map.put("airtimeValue",res.getString(res.getColumnIndex("airtimevalue")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("remarks",res.getString(res.getColumnIndex("remarks")));
+                map.put("response",res.getString(res.getColumnIndex("response")));
+                map.put("network",res.getString(res.getColumnIndex("network")));
+                array_list.add(map);
 
-        while(res.isAfterLast() == false){
-            Map map=new HashMap();
-            map.put("name",res.getString(res.getColumnIndex("name")));
-            map.put("phone",res.getString(res.getColumnIndex("phone")));
-            map.put("amount",res.getString(res.getColumnIndex("amount")));
-            map.put("rechargeDate",res.getString(res.getColumnIndex("rechargeDate")));
-            map.put("airtimeValue",res.getString(res.getColumnIndex("airtimevalue")));
-            map.put("status",res.getString(res.getColumnIndex("status")));
-            map.put("remarks",res.getString(res.getColumnIndex("remarks")));
-            map.put("response",res.getString(res.getColumnIndex("response")));
-            map.put("network",res.getString(res.getColumnIndex("network")));
-            array_list.add(map);
+                res.moveToNext();
+            }
+            res.close();
+            db.close();
+            return array_list;
+        } finally {  res.close();}
 
-            res.moveToNext();
-        }
-        res.close();
+
+    }
+
+    public boolean updateOrderDetails (String orderId,String updateField,String updateValue) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(updateField, updateValue);
+
+
+        db.update("Orders", contentValues, "orderId = ? ", new String[] { orderId } );
+
+        contentValues = new ContentValues();
+        contentValues.put(updateField, updateValue);
+
+
+        db.update("plansRequests", contentValues, "orderNumber = ? ", new String[] { orderId } );
         db.close();
-        return array_list;
 
+        return true;
     }
 }

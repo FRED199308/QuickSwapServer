@@ -15,6 +15,7 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -42,6 +43,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,6 +52,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,7 +60,7 @@ import dmax.dialog.SpotsDialog;
 
 public class Home extends AppCompatActivity implements View.OnClickListener {
     private final int MY_PERMISSIONS_REQUEST_SMS_RECEIVE = 100;
-    ImageView dailyBundles,agents,minutes,monthlyBundle,weeklyBundles,sms,rescue,addpackage,smsCheck,env,order,blacklist,airtime,poker,gifts;
+    ImageView dailyBundles,agents,minutes,monthlyBundle,weeklyBundles,sms,rescue,addpackage,smsCheck,env,order,blacklist,airtime,poker,gifts,refresh;
 EditText serverAdress;
 String deviceId="";
     private SpotsDialog progressDialog;
@@ -84,6 +87,7 @@ String deviceId="";
         poker=findViewById(R.id.poker);
         gifts=findViewById(R.id.gift);
         agents=findViewById(R.id.agents);
+        refresh=findViewById(R.id.refresh);
 
         sms=findViewById(R.id.sms);
         db=new DBHelper(this);
@@ -96,6 +100,7 @@ String deviceId="";
         poker.setOnClickListener(this);
         agents.setOnClickListener(this);
         gifts.setOnClickListener(this);
+        refresh.setOnClickListener(this);
 
         env.setOnClickListener(this);
         airtime.setOnClickListener(this);
@@ -378,11 +383,42 @@ deviceId=token;
             case R.id.poker:
 
                 clientPoker();
+            case R.id.refresh:
+
+
+                AlertDialog.Builder    alert= new AlertDialog.Builder(this);
+                alert.setTitle("Confirm Action");
+                alert.setMessage("Are you sure you want To Force A Refresh Across All Clients?\nYou Should Make Sure That All Plans Are Set Correctly");
+                alert.setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
+
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        sendPackagesToServer(serverAdress.getText().toString());
+                        dialog.dismiss();
+
+
+                    }
+                });
+
+                alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(Home.this,"Refresh Postponed ",Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                    }
+                });
+                alert.show();
+
+
+
 
                 break;
 
             case R.id.enviromentset:
-                AlertDialog.Builder    alert= new AlertDialog.Builder(this);
+               alert= new AlertDialog.Builder(this);
                 alert.setTitle("Confirm Action");
                 alert.setMessage("Are you sure you want Prepare The Enviroment\n This  will Delete All Plans History and You Will Have To Create The Afresh");
                 alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -580,6 +616,147 @@ else{
 
 
 
+
+    }
+    public void refresh() {
+        progressDialog.show();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        JSONObject json = new JSONObject();
+        try {
+            json.put("to","/topics/all");
+
+
+            JSONObject extraData = new JSONObject();
+            extraData.put("message","All Plans");
+            extraData.put("plans","sent");
+            extraData.put("title","Plan Refresh");
+            extraData.put("requestType","Plan Refresh");
+            JSONObject extraDataPriority = new JSONObject();
+            extraDataPriority.put("priority","high");
+            extraDataPriority.put("TTL","0");
+
+
+            // json.put("notification",notificationObj);
+            json.put("priority","high");
+            json.put("data",extraData);
+            json.put("android",extraDataPriority);
+
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "https://fcm.googleapis.com/fcm/send", json, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    progressDialog.dismiss();
+                    System.err.println("respo:"+response);
+                    Toast.makeText(Home.this,"Refresh Signal Sent Successfully :"+response, Toast.LENGTH_LONG).show();
+
+
+                    AlertDialog.Builder alert = new AlertDialog.Builder(Home.this);
+                    alert.setTitle("Response");
+                    alert.setMessage("Refresh Signal Sent Successfully :"+response);
+
+                    alert.show();
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // code run is got error
+                    progressDialog.dismiss();
+                    System.err.println(error.networkResponse);
+                    Toast.makeText(Home.this,"Error:"+error.networkResponse, Toast.LENGTH_LONG).show();
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+
+
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type", "application/json");
+                    header.put("authorization", "key=" + "AAAApiDN6pQ:APA91bFeGukqabOFIDmcs2R8w97v8cSfSesbPdryNE-R-cW482bAyIZXaAXCF0n29lve2ijrogLHgsOzetEA8X5yM1X77oodi3u1woW5eqMolcZM_sZKQskr4FrgKY99jzHEBu9eCzyx");
+                    return header;
+
+
+                }
+            };
+            requestQueue.add(request);
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+
+
+    }
+
+    public boolean sendPackagesToServer( String serverToken )
+    {ArrayList plans;
+        JSONObject json = new JSONObject();
+        try {
+
+            JSONArray array=new JSONArray();
+            plans= db.getAllplans();
+            String[] records=new String[plans.size()];
+            for(int i=0;i<plans.size();i++)
+            {
+
+                Map map=(Map) plans.get(i);
+                JSONObject ob=new JSONObject();
+                ob.put("planname",map.get("planname").toString());
+                ob.put("cost",map.get("cost").toString());
+                ob.put("network",map.get("network").toString());
+                ob.put("planType",map.get("planType").toString());
+
+                array.put(ob);
+            }
+
+
+            json.put("packages",array);
+            json.put("serverToken",serverToken);
+
+
+
+            JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.POST, "https://api.lunar.cyou/api/packages.php",
+                    json,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+
+                            String REQUESTTYPE="Plan Sent";
+                            Toast.makeText(Home.this,"Plans Loaded To Lunar Tech Server Successfully", Toast.LENGTH_LONG).show();
+                            refresh();
+                            Log.d("MUR", "onResponse: "+response);
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.err.println(error);
+                    Log.d("MUR", "onError............: "+error.networkResponse);
+                }
+            }
+            ){
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type","application/json");
+                    return header;
+                }
+            };
+            RequestQueue mRequestQue;
+
+            mRequestQue = Volley.newRequestQueue(Home.this);
+            mRequestQue.add(request);
+
+
+        }
+        catch (JSONException e)
+
+        {
+            e.printStackTrace();
+        }
+        return true;
 
     }
 
