@@ -25,6 +25,7 @@ public class SMSLogoView extends AppCompatActivity implements View.OnClickListen
     ArrayList list;
     Button clear;
     Button refresh;
+    DBHelper dbHelper;
     SMSLogAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +73,7 @@ clear.setOnClickListener(this);
                 if(SMSLogAdapter.action.equalsIgnoreCase("delete"))
                 {
                     SMS fetcher;
-                   DBHelper dbHelper=new DBHelper(SMSLogoView.this);
+                  dbHelper =dbHelper.getInstance(SMSLogoView.this);
              dbHelper.clearAitimeLogs();
               fetcher  =new SMS();
                 fetcher.execute("All");
@@ -112,7 +113,7 @@ clear.setOnClickListener(this);
             case        R.id.clearbtn:
 
 
-                DBHelper dbHelper=new DBHelper(SMSLogoView.this);
+                 dbHelper=dbHelper.getInstance(SMSLogoView.this);
                 dbHelper.clearAitimeLogs();
                 fetcher  =new SMS();
                 fetcher.execute("All");
@@ -155,7 +156,7 @@ clear.setOnClickListener(this);
         @Override
         protected ArrayList doInBackground(String...voids) {
 
-            list=SMSOperations.getAllSms(voids[0], SMSLogoView.this);
+         //   list=SMSOperations.getAllSms(voids[0], SMSLogoView.this);
 
             return  list;
 

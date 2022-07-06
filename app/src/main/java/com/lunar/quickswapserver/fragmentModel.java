@@ -30,7 +30,7 @@ public class fragmentModel extends Fragment {
         this.packageToLoad = packageToLoad;
         this.network = network;
         this.context=context;
-db=new DBHelper(context);
+db=db.getInstance(context);
 
     }
 

@@ -60,7 +60,7 @@ import dmax.dialog.SpotsDialog;
 
 public class Home extends AppCompatActivity implements View.OnClickListener {
     private final int MY_PERMISSIONS_REQUEST_SMS_RECEIVE = 100;
-    ImageView dailyBundles,agents,minutes,monthlyBundle,weeklyBundles,sms,rescue,addpackage,smsCheck,env,order,blacklist,airtime,poker,gifts,refresh;
+    ImageView dailyBundles,agents,minutes,monthlyBundle,weeklyBundles,sms,rescue,addpackage,smsCheck,env,order,blacklist,airtime,poker,gifts,refresh,marketing,deleteLogs;
 EditText serverAdress;
 String deviceId="";
     private SpotsDialog progressDialog;
@@ -88,9 +88,11 @@ String deviceId="";
         gifts=findViewById(R.id.gift);
         agents=findViewById(R.id.agents);
         refresh=findViewById(R.id.refresh);
+        marketing=findViewById(R.id.marketing);
+        deleteLogs=findViewById(R.id.logs);
 
         sms=findViewById(R.id.sms);
-        db=new DBHelper(this);
+        db=db.getInstance(this);
         sq=db.getWritableDatabase();
         progressDialog = new SpotsDialog(this, R.style.Custom);
         dailyBundles.setOnClickListener(this);
@@ -101,12 +103,14 @@ String deviceId="";
         agents.setOnClickListener(this);
         gifts.setOnClickListener(this);
         refresh.setOnClickListener(this);
+        deleteLogs.setOnClickListener(this);
 
         env.setOnClickListener(this);
         airtime.setOnClickListener(this);
         addpackage.setOnClickListener(this);
         weeklyBundles.setOnClickListener(this);
         monthlyBundle.setOnClickListener(this);
+        marketing.setOnClickListener(this);
         rescue.setOnClickListener(this);
         sms.setOnClickListener(this);
         configs=new InitialConfigs(this);
@@ -115,9 +119,10 @@ String deviceId="";
                 MY_PERMISSIONS_REQUEST_SMS_RECEIVE);
 
         minutes.setOnClickListener(this);
-//        MyFirebaseMessagingService myFirebaseMessagingService=new MyFirebaseMessagingService();
-//        myFirebaseMessagingService.FcmToken();
+        MyFirebaseMessagingService myFirebaseMessagingService=new MyFirebaseMessagingService();
+        FirebaseMessaging.getInstance().subscribeToTopic("all");
         startService(new Intent(this, Recharger.class));
+
 //        if (!isAccessibilityOn (this, WhatsappAccessibilityService.class)) {
 //            Intent intent = new Intent (Settings.ACTION_ACCESSIBILITY_SETTINGS);
 //            this.startActivity (intent);
@@ -131,7 +136,7 @@ String deviceId="";
                     @Override
                     public void onComplete(@NonNull Task<String> task) {
                         if (!task.isSuccessful()) {
-                            //  Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                              Log.w("0", "Fetching FCM registration token failed", task.getException());
                             return;
                         }
 
@@ -182,6 +187,7 @@ deviceId=token;
                     configs.saveApplicationDetails(configs.getrescueValue(),"true",configs.getloaderSwitch(), Home.this,configs.getServerStatus(),configs.getServerId());
                 }
                 else{
+
                     configs.saveApplicationDetails(configs.getrescueValue(),"false",configs.getloaderSwitch(), Home.this,configs.getServerStatus(),configs.getServerId());
                     configs.setswitchState("false");
                 }
@@ -340,6 +346,14 @@ deviceId=token;
                 startActivity(intent);
 
                 break;
+
+            case R.id.marketing:
+                intent = new Intent(getApplicationContext(), Marketing.class);
+
+
+                startActivity(intent);
+
+                break;
             case R.id.airtime:
                 intent = new Intent(getApplicationContext(), Airtime.class);
 
@@ -383,6 +397,7 @@ deviceId=token;
             case R.id.poker:
 
                 clientPoker();
+                break;
             case R.id.refresh:
 
 
@@ -445,7 +460,30 @@ deviceId=token;
                 alert.show();
                 break;
 
+            case R.id.logs:
+                alert= new AlertDialog.Builder(this);
+                alert.setTitle("Confirm Action");
+                alert.setMessage("Are you sure you want To Delete All Logs From The System");
+                alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                     db.clearAllLogs();
+
+                    }
+                });
+
+                alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                alert.show();
+                break;
 
             case R.id.rescueOption:
                   alert= new AlertDialog.Builder(this);
@@ -625,6 +663,7 @@ else{
         JSONObject json = new JSONObject();
         try {
             json.put("to","/topics/all");
+         //   json.put("to","dLUTzMmMT4uxbiJaN9Gi0a:APA91bH05_0tg79qArYRpT3sg1kKFTlkwhDMwRPQQq6sKr7rIsDX9B1kWfTgUNS0paFWQXxP3_NQUJ2_5s3c0NGVnyzzZYPwnuNREvXUWNtBaUOSEG1rk21yfIC-4kuWIXiKn1DjjMw3");
 
 
             JSONObject extraData = new JSONObject();

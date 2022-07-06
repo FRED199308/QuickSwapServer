@@ -60,7 +60,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
-
     String payingPhone = "", rechargingPhone = "",requestType="", costfromClient ="";
     int paymentValue = 0;
     String msg_from="";
@@ -68,25 +67,28 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     String plan="";
     String registrationId="";
-    SQLiteDatabase sq;
+
     InitialConfigs configs;
     private RequestQueue mRequestQue;
     LipaRequest lipaRequest;
+    DBHelper db ;
     SimpleDateFormat format=new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
     private String URL = "https://fcm.googleapis.com/fcm/send";
 String orderNumber="";
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
-        Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this,
-                Home.class));
+
         orderNumber = "";
         //if(configs.getServerId().equalsIgnoreCase("hdh"))
         if(lipaRequest==null)
         {
             lipaRequest = new LipaRequest();
         }
-
+        if(db==null)
+        {
+            db = db.getInstance(this);
+        }
         super.onMessageReceived(remoteMessage);
 
 
@@ -101,7 +103,7 @@ String orderNumber="";
         {
             mRequestQue = Volley.newRequestQueue(this);
         }
-        FirebaseMessaging.getInstance().subscribeToTopic("all");
+       // FirebaseMessaging.getInstance().subscribeToTopic("all");
         Map<String, String> extraData = remoteMessage.getData();
 
         String networkPlan = extraData.get("network");
@@ -116,7 +118,8 @@ String orderNumber="";
             sendConfirmationNotifcation(this, messageToReply, registrationId, rechargingPhone, null);
 
 
-        } else {
+        }
+        else {
 
 
 
@@ -225,16 +228,18 @@ String orderNumber="";
 
 
         if (configs.getServerStatus().equalsIgnoreCase("true")) {
+
             if (planrequeted != null && (appPredefinedRequestformatVerifier(planrequeted) || appPredefinedUnknownCostRequestformatVerifier(planrequeted))) {
 
-                DBHelper db = new DBHelper(this);
+                
                 sendNotification(planrequeted, "Request Received", R.string.blackColor);
                 String messageContent = planrequeted;
                 System.err.println("App Format Accepted");
                 orderNumber = IdGenerator.keyGen();
                 System.err.println("Order Number:" + orderNumber);
-                db = new DBHelper(this);
-                sq = db.getWritableDatabase();
+                db = db.getInstance(this);
+
+
 
                 String packageDetail[] = messageContent.split("#");
                 String network = packageDetail[1];
@@ -244,10 +249,13 @@ String orderNumber="";
                 payingPhone = packageDetail[3];
                 if (packageDetail.length > 4) {
                     costfromClient = packageDetail[4];
-                } else {
-                    costfromClient = "";
                 }
-                System.err.println("Pack Deatils" + messageContent);
+                else {
+
+                    costfromClient = "";
+
+                }
+//                System.err.println("Pack Deatils" + messageContent);
                 requestType = "Plan#" + plan + network;
                 System.err.println("Network: " + network);
                 System.err.println("Cost: " + costfromClient);
@@ -262,7 +270,8 @@ String orderNumber="";
                     System.err.println("Not An Agent");
                     savedPlanCost = db.getPlanCostDetails(plan, network).get("cost");
                 } else {
-                    System.err.println("Is Agent");
+
+                   // System.err.println("Is Agent");
                     savedPlanCost = db.getPlanCostDetails(plan, network).get("agentCost");
                     if (savedPlanCost.isEmpty()) {
                         savedPlanCost = db.getPlanCostDetails(plan, network).get("cost");
@@ -341,12 +350,12 @@ String orderNumber="";
 
                 }
 
-
+//db.close();
             } else {
 
                 if (planrequeted.equalsIgnoreCase("All Plans")) {
 
-                    DBHelper db = new DBHelper(this);
+                    
                     FirebaseMessaging.getInstance().getToken()
                             .addOnCompleteListener(new OnCompleteListener<String>() {
                                 @Override
@@ -364,6 +373,7 @@ String orderNumber="";
 
                                 }
                             });
+                   // db.close();
 
                 }
 
@@ -380,7 +390,7 @@ String orderNumber="";
 
     private void statusProcessor(String messageContent)
     {
-        DBHelper db = new DBHelper(this);
+        
         String orderNumber="";
         if(messageContent.split("#").length>=2)
         {
@@ -427,6 +437,7 @@ String orderNumber="";
 
 
         }
+       // db.close();
 
     }
     private void sendNotification(String messageBody,String title,int color) {
@@ -484,13 +495,13 @@ String orderNumber="";
     }
 public String registerAgent(String details)
 {
-    DBHelper db = new DBHelper(this);
+    
     details=details.replaceFirst("Contact Number:","");
     SimpleDateFormat format=new SimpleDateFormat("yyyy-M-dd hh:mm:ss");
     String fullname=details.split("#")[1]+" "+details.split("#")[2];
     String contact=details.split("#")[0];
   String response=  db.registerAgent(fullname,contact,format.format(new Date()));
-
+//db.close();
     return response;
 }
 
@@ -516,7 +527,7 @@ public String registerAgent(String details)
         else{
 
         }
-        sendSms(context, messageToReply,  payingPhone,true);
+      //  sendSms(context, messageToReply,  payingPhone,true);
 //        Token token = new Token();
 //        token.execute();
         authTok(this);
@@ -577,6 +588,8 @@ for(int i=0;i<plans.size();i++)
                        String REQUESTTYPE="Plan Sent";
 sendConfirmationNotifcation(context,message,deviceNumber,REQUESTTYPE,"");
                         Log.d("MUR", "onResponse: "+response);
+
+
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -594,7 +607,7 @@ sendConfirmationNotifcation(context,message,deviceNumber,REQUESTTYPE,"");
             }
         };
         mRequestQue.add(request);
-        com.android.volley.Request rr;
+
 
     }
     catch (JSONException e)
@@ -674,7 +687,7 @@ return true;
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void paymentProcessor(String orderDetails, Context context)
     {
-        DBHelper db = new DBHelper(this);
+        
         System.err.println("haha1");
         String content[]=orderDetails.split("#");
         String plantype="";
@@ -1218,7 +1231,7 @@ return true;
             json.put("Timestamp","20190216165627");
             json.put("TransactionType","CustomerBuyGoodsOnline");
             json.put("Amount",Amount);
-            json.put("PartyA","254707353225");
+            json.put("PartyA",PhoneNumber);
             json.put("PartyB","9587279");
             json.put("PhoneNumber",PhoneNumber);
             json.put("CallBackURL","https://api.lunar.cyou/api/lipacallback.php");

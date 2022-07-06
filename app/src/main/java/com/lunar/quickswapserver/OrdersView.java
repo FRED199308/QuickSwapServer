@@ -30,7 +30,7 @@ DBHelper helper;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_orders_view);
         search=findViewById(R.id.searchfield);
-        helper=new DBHelper(this);
+        helper=helper.getInstance(this);
         bar=findViewById(R.id.progressBar);
         recyclerView = findViewById(R.id.orderRecycleview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

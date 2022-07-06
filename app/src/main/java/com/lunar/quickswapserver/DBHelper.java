@@ -28,6 +28,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CONTACTS_COLUMN_STREET = "street";
     public static final String CONTACTS_COLUMN_CITY = "place";
     public static final String CONTACTS_COLUMN_PHONE = "phone";
+    public static  DBHelper mInstance = null;
     private HashMap hp;
     @SuppressLint("Range")
     public DBHelper(Context context) {
@@ -35,6 +36,16 @@ public class DBHelper extends SQLiteOpenHelper {
        // System.err.println("Created Db");
     }
 
+    public static DBHelper getInstance(Context ctx) {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (mInstance == null) {
+            mInstance = new DBHelper(ctx.getApplicationContext());
+        }
+        return mInstance;
+    }
     @Override
     public void onCreate(SQLiteDatabase db) {
         // TODO Auto-generated method stub
@@ -52,7 +63,7 @@ public  void creatLogsTable()
             "create table airtimelogs " +
                     "(id integer primary key, name text,phone text,amount integer, rechargeDate  DATETIME,airtimevalue integer,status text,remarks text,response text,network text)"
     );
-    db.close();
+    
 }
 
 
@@ -65,7 +76,7 @@ public  void creatLogsTable()
                 "create table plans " +
                         "( planName text,plantype text,cost text, network  text,actualCost text,agentCost text)"
         );
-        db.close();
+        
     }
 
     public  void createAgentTable()
@@ -82,20 +93,20 @@ public  void creatLogsTable()
 //        db.execSQL("ALTER TABLE plans ADD COLUMN agentCost text");
 //        db.execSQL("ALTER TABLE orders ADD COLUMN orderNumber text");
 //        db.execSQL("ALTER TABLE plansRequests ADD COLUMN orderNumber text");
-        db.close();
+        
     }
 
-    public  void createBulkSMSTable()
+    public  void createBlackListTable()
     {
         SQLiteDatabase db=this.getWritableDatabase();
 
         db.execSQL(
-                "create table agents " +
-                        "( sendMode text,contact text,deviceId text,dateSent text,status text)"
+                "create table blacklist " +
+                        "( phoneNumber text,dateadded text,status text,reason text)"
         );
 
 
-        db.close();
+        
     }
 
 
@@ -107,7 +118,7 @@ public  void creatLogsTable()
                 "create table plansRequests " +
                         "( planName text,plantype text,cost text, network  text,payingPhone text,dateRequested text,status text,mode text,orderNumber text,rechargePhone text,deviceId text)"
         );
-        db.close();
+        
     }
 
     public  void createOrdersTable()
@@ -118,7 +129,7 @@ public  void creatLogsTable()
                 "create table orders " +
                         "( planName text,plantype text,cost text, network  text,payingPhone text,dateRequested text,status text,paymentCode text,orderId text,rechargePhone text,name text,amountPaid text)"
         );
-        db.close();
+        
     }
 
     public  void clearAitimeLogs()
@@ -128,7 +139,19 @@ public  void creatLogsTable()
         db.execSQL(
                 "Delete from airtimelogs"
         );
-        db.close();
+        
+    }
+    public  void clearAllLogs()
+    {
+        SQLiteDatabase db=this.getWritableDatabase();
+
+        db.execSQL(
+                "Delete from orders"
+        );
+        db.execSQL(
+                "Delete from plansRequests"
+        );
+
     }
 
     @Override
@@ -160,7 +183,9 @@ public  void creatLogsTable()
         contentValues.put("deviceId", deviceId);
 
         db.insert("plansRequests", null, contentValues);
-        db.close();
+        
+        contentValues.clear();
+
         return "saved";
 
 
@@ -200,9 +225,41 @@ public  void creatLogsTable()
 
             db.insert("agents", null, contentValues);
             res.close();
-            db.close();
+            
             return "saved";
         }
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+    public String registerBlackListNumber( String contact, String date,String reason) {
+
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put("phoneNumber", contact);
+            contentValues.put("dateadded", date);
+            contentValues.put("reason", reason);
+            contentValues.put("status", "Active");
+
+
+
+            db.insert("blacklist", null, contentValues);
+
+
+            return "saved";
+
 
 
 
@@ -243,7 +300,8 @@ public  void creatLogsTable()
 
 
         db.insert("orders", null, contentValues);
-        db.close();
+        contentValues.clear();
+        
         return "saved";
 
 
@@ -270,7 +328,7 @@ public  void creatLogsTable()
         res.moveToFirst();
 
         if(res.moveToFirst()){
-            db.close();
+            
             res.close();
             return "Plan Already Exist";
 
@@ -287,8 +345,8 @@ public  void creatLogsTable()
             contentValues.put("actualCost", actualCost);
             contentValues.put("agentcost", agentCost);
             db.insert("plans", null, contentValues);
-
-            db.close();
+            contentValues.clear();
+            
             return "Saved";
         }
 
@@ -315,7 +373,8 @@ public  void creatLogsTable()
         contentValues.put("response", response);
         contentValues.put("network", network);
         db.insert("airtimelogs", null, contentValues);
-        db.close();
+        contentValues.clear();
+        
         return true;
     }
 
@@ -375,13 +434,75 @@ public  void creatLogsTable()
 
                 res.moveToNext();
             }
-            db.close();
+            
             res.close();
             System.out.println("heheh "+array_list);
             return array_list;
-        } finally {  res.close(); db.close();}
+        } finally {  res.close(); }
 
     }
+
+
+
+
+    public HashSet getAllPhoneNumbers() {
+        HashSet set = new HashSet();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select  rechargePhone,payingPhone  from  plansRequests   order by dateRequested asc", null );
+        res.moveToFirst();
+
+        while(res.isAfterLast() == false){
+            set.add(res.getString(res.getColumnIndex("rechargePhone")).replace("+254","0"));
+            set.add(res.getString(res.getColumnIndex("payingPhone")).replace("+254","0"));
+            res.moveToNext();
+        }
+
+        res =  db.rawQuery( "select  rechargePhone,payingPhone  from  orders   order by dateRequested asc", null );
+        res.moveToFirst();
+
+        while(res.isAfterLast() == false){
+            set.add(res.getString(res.getColumnIndex("rechargePhone")).replace("+254","0"));
+            set.add(res.getString(res.getColumnIndex("payingPhone")).replace("+254","0"));
+            res.moveToNext();
+        }
+        return set;
+    }
+    public HashSet getAllPayingNumbers() {
+        HashSet set = new HashSet();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select distinct payingPhone  from  plansRequests   order by dateRequested asc", null );
+        res.moveToFirst();
+
+        while(res.isAfterLast() == false){
+            set.add(res.getString(res.getColumnIndex("payingPhone")).replace("+254","0"));
+
+            res.moveToNext();
+        }
+
+        return set;
+    }
+
+    public HashSet getAllRechargeNumbers() {
+        HashSet set = new HashSet();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select distinct rechargePhone  from  plansRequests   order by dateRequested asc", null );
+        res.moveToFirst();
+
+        while(res.isAfterLast() == false){
+            set.add(res.getString(res.getColumnIndex("rechargePhone")).replace("+254","0"));
+
+            res.moveToNext();
+        }
+
+        return set;
+    }
+
+
+
+
 
     public ArrayList getAllplans() {
         ArrayList array_list = new ArrayList();
@@ -406,9 +527,9 @@ public  void creatLogsTable()
             res.close();
 
 
-            db.close();
+            
             return array_list;
-        } finally {  res.close(); db.close();}
+        } finally {  res.close(); }
 
     }
     public ArrayList getAllOrders() {
@@ -448,7 +569,7 @@ public  void creatLogsTable()
                 res.moveToNext();
             }
         }
-        finally {  res.close(); db.close();}
+        finally {  res.close(); }
         return array_list;
     }
 
@@ -473,7 +594,7 @@ public  void creatLogsTable()
                 res.moveToNext();
             }
             res.close();
-            db.close();
+            
             System.out.println("heheh "+array_list);
             return array_list;
         } finally {  res.close();}
@@ -494,7 +615,7 @@ public  void creatLogsTable()
                 map.put("network",res.getString(res.getColumnIndex("network")));
                 map.put("actualCost",res.getString(res.getColumnIndex("actualCost")));
                 map.put("agentCost",res.getString(res.getColumnIndex("agentCost")));
-                db.close();
+                
                 res.close();
                 return  map;
 
@@ -512,7 +633,7 @@ public  void creatLogsTable()
                 return map;
             }
 
-        } finally {  res.close(); db.close();}
+        } finally {  res.close(); }
 
     }
 
@@ -538,11 +659,11 @@ public  void creatLogsTable()
             else{
                 Map map=new HashMap();
                 map.put("agentName","");
-                db.close();
+                
                 res.close();
                 return map;
             }
-        } finally {  res.close();db.close();}
+        } finally {  res.close();}
 
 
     }
@@ -576,7 +697,7 @@ public  void creatLogsTable()
             }
 
             return array_list;
-        } finally {  res.close();db.close();}
+        } finally {  res.close();}
 
     }
 
@@ -606,10 +727,42 @@ public  void creatLogsTable()
                 System.err.println(map);
                 res.moveToNext();
             }
-            db.close();
+            
             res.close();
             return array_list;
-        } finally {  res.close();db.close();}
+        } finally {  res.close();}
+
+    }
+
+    public ArrayList getBlackList() {
+        ArrayList array_list = new ArrayList();
+
+        //hp = new HashMap();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select rowid,* from agents  order by dateEnrolled desc", null );
+        res.moveToFirst();
+        try {
+            System.err.println("Reached");
+            while(res.isAfterLast() == false){
+                Map map=new HashMap();
+                map.put("phoneNumber",res.getString(res.getColumnIndex("phoneNumber")));
+                map.put("status",res.getString(res.getColumnIndex("status")));
+                map.put("dateadded",res.getString(res.getColumnIndex("dateadded")));
+                map.put("rowId",res.getString(res.getColumnIndex("rowid")));
+                map.put("reason",res.getString(res.getColumnIndex("reason")));
+
+
+
+
+
+                array_list.add(map);
+                System.err.println(map);
+                res.moveToNext();
+            }
+
+            res.close();
+            return array_list;
+        } finally {  res.close();}
 
     }
 
@@ -623,7 +776,7 @@ public  void creatLogsTable()
         contentValues.put("agentCost", agentcost);
 
         db.update("plans", contentValues, "planName = ? and network=? ", new String[] { planName,network } );
-        db.close();
+        
 
         return true;
     }
@@ -638,7 +791,7 @@ public  void creatLogsTable()
 
 System.err.println(agentName+"  "+nominatedNUmber);
         db.update("agents", contentValues, "rowid=?", new String[] { rowId } );
-        db.close();
+        
 
 
         return true;
@@ -650,7 +803,7 @@ System.err.println(agentName+"  "+nominatedNUmber);
 
         db.delete("plans",  "planName = ? and network=? ", new String[] { planName,network } );
 
-db.close();
+
         return true;
     }
     public boolean deleteAgent (String agentName, String contact) {
@@ -659,7 +812,17 @@ db.close();
 
         db.delete("agents",  "agentName = ? and contact=? ", new String[] { agentName,contact } );
 
-        db.close();
+        
+        return true;
+    }
+
+    public boolean deleteBlackListNumber (String phoneNumber) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+
+        db.delete("blacklist",  "phoneNumber = ?", new String[] { phoneNumber } );
+
+
         return true;
     }
     public boolean deleteOrderDetails (String phone, String mpesacode, String cost) {
@@ -668,7 +831,7 @@ db.close();
 
         db.delete("orders",  "paymentcode = ? and cost=?  and phone=?", new String[] { mpesacode,cost,phone } );
 
-        db.close();
+        
         return true;
     }
 
@@ -846,7 +1009,7 @@ System.err.println("status:"+status);
                 res.moveToNext();
             }
             res.close();
-            db.close();
+            
             return array_list;
         } finally {  res.close();}
 
@@ -866,7 +1029,7 @@ System.err.println("status:"+status);
 
 
         db.update("plansRequests", contentValues, "orderNumber = ? ", new String[] { orderId } );
-        db.close();
+        
 
         return true;
     }

@@ -27,10 +27,11 @@ public class USSDCalls {
 
 
     private static final int REQUEST_READ_PHONE_STATE =23 ;
-
+    DBHelper dbHelper;
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void dialUssd(String ussdCode, int sim, Context context, String phone, int amount, int value, String network) {
-DBHelper dbHelper=new DBHelper(context);
+
+        dbHelper=dbHelper.getInstance(context);
         if (ussdCode.equalsIgnoreCase("")) return;
 
 

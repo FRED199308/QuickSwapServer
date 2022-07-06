@@ -31,7 +31,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder>{
     public OrderAdapter(ArrayList lists, Context context) {
         list=lists;
 this.context=context;
-        db=new DBHelper(context);
+        db=db.getInstance(context);
         sq=db.getWritableDatabase();
 
     }

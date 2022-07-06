@@ -34,7 +34,7 @@ public class Dailydapter extends RecyclerView.Adapter<Dailydapter.ViewHolder>{
         this.network=network;
 this.context=context;
 
-        db=new DBHelper(context);
+        db=db.getInstance(context);
         sq=db.getWritableDatabase();
     }
     @Override
@@ -60,7 +60,6 @@ String plan=((Map)list.get(position)).get("planname").toString();
             holder.cost.setText(((Map)list.get(position)).get("cost").toString());
             holder.agentCost.setText(((Map)list.get(position)).get("agentCost").toString());
 
-System.err.println("lllllllllllllllllllllll");
 
 
 

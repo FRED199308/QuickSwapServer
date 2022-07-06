@@ -11,12 +11,14 @@ import java.util.ArrayList;
 public class Agents extends AppCompatActivity {
     AgentsAdapter adapter;
     ArrayList list;
+    DBHelper dbHelper;
 RecyclerView recyclerView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_agents);
-DBHelper dbHelper=new DBHelper(this);
+
+dbHelper=dbHelper.getInstance(this);
 
         recyclerView = findViewById(R.id.agentsRecycleview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

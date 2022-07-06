@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            Intent intent = new Intent (Settings.ACTION_ACCESSIBILITY_SETTINGS);
 //            this.startActivity (intent);
 //        }
-        db=new DBHelper(this);
+        db=db.getInstance(this);
         sq=db.getWritableDatabase();
         balbtn = findViewById(R.id.balbtn);
         Globals.context = this;

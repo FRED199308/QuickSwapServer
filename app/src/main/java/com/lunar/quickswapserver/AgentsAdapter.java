@@ -45,7 +45,7 @@ public class AgentsAdapter extends RecyclerView.Adapter<AgentsAdapter.ViewHolder
         this.network=network;
 this.context=context;
 
-        db=new DBHelper(context);
+        db=db.getInstance(context);
         sq=db.getWritableDatabase();
     }
     @Override

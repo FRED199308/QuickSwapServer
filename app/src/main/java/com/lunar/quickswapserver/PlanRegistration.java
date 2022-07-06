@@ -49,7 +49,7 @@ planName=findViewById(R.id.planNameField);
             }
         });
 
-db=new DBHelper(this);
+db=db.getInstance(this);
         sq=db.getWritableDatabase();
         String sex []={"Select Level","Safaricom","Airtel","Telkom"};
         ArrayAdapter adp1 = new ArrayAdapter<String>(getApplicationContext(),

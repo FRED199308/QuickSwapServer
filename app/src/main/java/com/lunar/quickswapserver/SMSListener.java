@@ -26,16 +26,24 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 
+import org.apache.xerces.impl.dv.util.Base64;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -76,7 +84,7 @@ String orderNumber="";
             Bundle bundle = intent.getExtras();           //---get the SMS message passed in---
             SmsMessage[] msgs = null;
 
-            db=new DBHelper(context);
+            db=db.getInstance(context);
             configs=new InitialConfigs(context);
             lipaRequest=new LipaRequest();
             if (bundle != null) {
@@ -420,7 +428,7 @@ public void covertAirtimeProcessor(String messageContent, Context context, Strin
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP_MR1)
     private void normalRequestProcessing(String msgBody,Context context) {
         String oringinalMsg=msgBody;
-        db=new DBHelper(context);
+        db=db.getInstance(context);
         String messageContent=msgBody;
         msgBody=msgBody.replaceAll(" ","");
 
@@ -507,7 +515,7 @@ public void covertAirtimeProcessor(String messageContent, Context context, Strin
                         {
                             System.err.println("App Format Accepted");
 
-                            db=new DBHelper(context);
+                            db=db.getInstance(context);
                             sq=db.getWritableDatabase();
 
                             String packageDetail[]=messageContent.split("#");
@@ -1645,5 +1653,258 @@ System.err.println("recharge Phone"+rechargingPhone);
         }
 
     }
+
+
+    public void authTok(Context context)
+    {
+
+        Gson gson=new Gson();
+        JSONObject json = new JSONObject();
+        try {
+            String app_key = "yBIf50DIGeUu2dRzZHWVOurNj0nAtA19";
+            String app_secret = "oadlZaBFbXCaEkzZ";
+            String appKeySecret = app_key + ":" + app_secret;
+            byte[] bytes = appKeySecret.getBytes("ISO-8859-1");
+            String auth = Base64.encode(bytes);
+            String url="https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
+            JSONArray array=new JSONArray();
+
+
+
+
+            JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.GET, url,
+                    null,
+                    new com.android.volley.Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            AuthToken authToken;
+
+                            String REQUESTTYPE="Plan Sent";
+                            System.err.println("Resssss....."+response);
+                            authToken = gson.fromJson(response.toString(), AuthToken.class);
+                            issueSTK(authToken.getToken(),payingPhone,paymentValue,rechargingPhone,plan,"Un Known",clientFcmToken,serverFcmToken,configs.getServerId(),orderNumber);
+
+
+
+                            Log.d("MUR", "onResponse: "+response);
+                        }
+                    }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.err.println(error);
+                    Log.d("MUR", "onError............: "+error.networkResponse);
+                }
+            }
+            ){
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type","application/json");
+                    header.put("cache-control", "no-cache");
+                    header.put("authorization", "Basic " + auth);
+                    return header;
+                }
+            };
+
+            mRequestQue.add(request);
+        }
+        catch (Exception e)
+
+        {
+            e.printStackTrace();
+        }
+
+
+
+
+
+
+    }
+
+
+
+
+
+    public void issueSTK(String token, String PhoneNumber, double Amount, String rechargingPhone, String requestType,String deviceId,String fcmToken,String serverAdress,String serverId,String orderNumber)
+    {
+        if(PhoneNumber.startsWith("0"))
+        {
+            PhoneNumber=PhoneNumber.replaceFirst("0", "254");
+        }
+        if(PhoneNumber.startsWith("+254"))
+        {
+
+            PhoneNumber=PhoneNumber.substring(1);
+        }
+        Gson gson=new Gson();
+        JSONObject json = new JSONObject();
+
+
+
+        try {
+
+            json.put("BusinessShortCode","7631176");
+            json.put("Password","NzYzMTE3NmU4ZjIyM2U3OTBlNWIxMWVhMzliMjZiNjk2N2ExOGQzYzA5OGJiMjI3YjZiNWJiZDE0OWIyNDA5MTJlZGJhODUyMDE5MDIxNjE2NTYyNw==");
+            json.put("Timestamp","20190216165627");
+            json.put("TransactionType","CustomerBuyGoodsOnline");
+            json.put("Amount",Amount);
+            json.put("PartyA",PhoneNumber);
+            json.put("PartyB","9587279");
+            json.put("PhoneNumber",PhoneNumber);
+            json.put("CallBackURL","https://api.lunar.cyou/api/lipacallback.php");
+            json.put("AccountReference","Airtime");
+            json.put("TransactionDesc","Purchase");
+            String url="https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
+
+
+
+
+
+            JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.POST, url,
+                    json,
+                    new com.android.volley.Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+
+                            try {
+                                if(response.get("ResponseCode").equals("0"))
+                                {
+                                    saveAirtimeRequest(rechargingPhone,Amount,response.getString("CheckoutRequestID"),response.getString("MerchantRequestID"),requestType,deviceId,fcmToken,serverAdress,serverId,orderNumber);
+
+                                }
+                                else {
+                                    System.err.println("Error"+response.toString());
+
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                            Log.d("MUR", "onResponse: "+response);
+                        }
+                    }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.err.println(json);
+                    // As of f605da3 the following should work
+                    NetworkResponse response = error.networkResponse;
+                    if (error instanceof ServerError && response != null) {
+                        try {
+                            String res = new String(response.data,
+                                    HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                            // Now you can use any deserializer to make sense of data
+                            JSONObject obj = new JSONObject(res);
+                            System.err.println(res);
+                        } catch (UnsupportedEncodingException e1) {
+                            // Couldn't properly decode data to string
+                            e1.printStackTrace();
+                        } catch (JSONException e2) {
+                            // returned data is not JSONObject?
+                            e2.printStackTrace();
+                        }
+                    }
+                }
+            }
+            ){
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type","application/json");
+
+                    header.put("authorization", "Bearer " + token);
+                    return header;
+                }
+            };
+            request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5, 1.0f));
+
+            mRequestQue.add(request);
+        }
+        catch (Exception e)
+
+        {
+            e.printStackTrace();
+        }
+
+
+
+
+
+
+    }
+
+    public void saveAirtimeRequest(String phone, double amount, String checkoutRequestID, String merchantRequestID, String requestType,String deviceId,String fcmToken,String serverAdress,String serverId,String orderNumber)
+    {
+
+        try {
+
+            JSONObject data = new JSONObject();
+
+            data.put("amount",amount);
+            data.put("status","0");
+            data.put("phoneNumber",phone);
+            data.put("MerchantRequestID",merchantRequestID);
+            data.put("CheckoutRequestID",checkoutRequestID);
+            data.put("requestType",requestType);
+            data.put("tillNumber","9587279");
+            data.put("deviceId",deviceId);
+            data.put("fcmToken",fcmToken);
+            data.put("serverAddress",serverAdress);
+            data.put("serverId",serverId);
+            data.put("orderNumber",orderNumber);
+            int e=0;
+            String url = "https://api.lunar.cyou/api/airtimerequest.php";
+
+            JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.POST, url,
+                    data,
+                    new com.android.volley.Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            AuthToken authToken;
+                            String REQUESTTYPE="Plan Sent";
+                            System.err.println("Resssss....."+response);
+                            try {
+                                if(response.get("responseCode").equals("200"))
+                                {
+
+                                    System.err.println("sucess");
+
+                                }
+                                else {
+
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                            Log.d("MUR", "onResponse: "+response);
+                        }
+                    }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.err.println(error);
+                    Log.d("MUR", "onError............: "+error.networkResponse);
+                }
+            }
+            ){
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> header = new HashMap<>();
+                    header.put("content-type","application/json");
+
+                    return header;
+                }
+            };
+            request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5, 1.0f));
+            mRequestQue.add(request);
+
+        }
+        catch (Exception sq){
+
+        }
+
+    }
+
 
 }
