@@ -64,7 +64,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     int paymentValue = 0;
     String msg_from="";
     String requestMode="";
-
+gegeg
     String plan="";
     String registrationId="";
 
