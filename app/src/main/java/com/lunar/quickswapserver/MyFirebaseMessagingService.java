@@ -72,6 +72,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private RequestQueue mRequestQue;
     LipaRequest lipaRequest;
     DBHelper db ;
+   static JsonObjectRequest request;
     SimpleDateFormat format=new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
     private String URL = "https://fcm.googleapis.com/fcm/send";
 String orderNumber="";
@@ -101,7 +102,12 @@ String orderNumber="";
 
         if(mRequestQue==null)
         {
-            mRequestQue = Volley.newRequestQueue(this);
+            mRequestQue = Volley.newRequestQueue(getApplicationContext());
+            System.err.println(" Created New Thread");
+
+        }
+        else{
+            System.err.println("Didnt Create New Thread");
         }
        // FirebaseMessaging.getInstance().subscribeToTopic("all");
         Map<String, String> extraData = remoteMessage.getData();
@@ -517,7 +523,7 @@ public String registerAgent(String details)
         subscriptionId = Integer.parseInt(simInfo.get("sim1SubscriptionId").toString());
 
         sendConfirmationNotifcation(context,messageToReply,registrationId,"Plan Request Confirmation",plan);
-      //  sendSms(context, messageToReply,  rechargingPhone,true);
+       sendSms(context, messageToReply,  rechargingPhone,true);
 
         if(payingPhone.equalsIgnoreCase(rechargingPhone.replace("+254","0")))
         {
@@ -580,24 +586,22 @@ for(int i=0;i<plans.size();i++)
 
 
 
-        JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.POST, "https://api.lunar.cyou/api/packages.php",
+
+
+         request = new JsonObjectRequest(com.android.volley.Request.Method.POST, "https://api.lunar.cyou/api/packages.php",
                 json,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                       String REQUESTTYPE="Plan Sent";
+                response -> {
+                   String REQUESTTYPE="Plan Sent";
 sendConfirmationNotifcation(context,message,deviceNumber,REQUESTTYPE,"");
-                        Log.d("MUR", "onResponse: "+response);
+                    Log.d("MUR", "onResponse: "+response);
+                    
 
 
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                System.err.println(error);
-                Log.d("MUR", "onError............: "+error.networkResponse);
-            }
-        }
+                }, error -> {
+                    System.err.println(error);
+                    Log.d("MUR", "onError............: "+error.networkResponse);
+            
+                }
         ){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -646,19 +650,21 @@ return true;
             array.add(deviceNumber);
 
             System.err.println("load:"+json);
-            JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.POST, URL,
+             request = new JsonObjectRequest(com.android.volley.Request.Method.POST, URL,
                     json,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
 
                             Log.d("MUR", "onResponse: "+response);
+                            
                         }
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     System.err.println(error);
                     Log.d("MUR", "onError: "+error.networkResponse);
+                    
                 }
             }
             ){
@@ -1156,7 +1162,7 @@ return true;
 
 
 
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,
+             request = new JsonObjectRequest(Request.Method.GET, url,
                     null,
                     new com.android.volley.Response.Listener<JSONObject>() {
                         @Override
@@ -1176,6 +1182,7 @@ return true;
                 public void onErrorResponse(VolleyError error) {
                     System.err.println(error);
                     Log.d("MUR", "onError............: "+error.networkResponse);
+                    
                 }
             }
             ){
@@ -1188,6 +1195,7 @@ return true;
                     return header;
                 }
             };
+          
 
             mRequestQue.add(request);
         }
@@ -1244,7 +1252,7 @@ return true;
 
 
 
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+             request = new JsonObjectRequest(Request.Method.POST, url,
                     json,
                     new com.android.volley.Response.Listener<JSONObject>() {
                         @Override
@@ -1261,12 +1269,16 @@ return true;
 
                                 }
                             } catch (JSONException e) {
+
+
                                 e.printStackTrace();
                             }
 
 
                             Log.d("MUR", "onResponse: "+response);
+                            
                         }
+
                     }, new com.android.volley.Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
@@ -1288,6 +1300,7 @@ return true;
                             e2.printStackTrace();
                         }
                     }
+                    
                 }
             }
             ){
@@ -1339,7 +1352,7 @@ return true;
    int e=0;
        String url = "https://api.lunar.cyou/api/airtimerequest.php";
 
-       JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+        request = new JsonObjectRequest(Request.Method.POST, url,
                data,
                new com.android.volley.Response.Listener<JSONObject>() {
                    @Override
@@ -1363,12 +1376,14 @@ return true;
 
 
                        Log.d("MUR", "onResponse: "+response);
+                       
                    }
                }, new com.android.volley.Response.ErrorListener() {
            @Override
            public void onErrorResponse(VolleyError error) {
                System.err.println(error);
                Log.d("MUR", "onError............: "+error.networkResponse);
+               
            }
        }
        ){
@@ -1382,6 +1397,7 @@ return true;
        };
        request.setRetryPolicy(new DefaultRetryPolicy(20 * 1000, 5, 1.0f));
        mRequestQue.add(request);
+
 
    }
    catch (Exception sq){
